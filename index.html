@@ -1,0 +1,2439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neural Nexus — Mumbai Command Center</title>
+  <meta name="description" content="Real-time 50-fleet MARL logistics command center for Mumbai." />
+
+  <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Orbitron:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── RESET ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* ── Electric accent palette ── */
+      --cyan:        #00D4FF;   /* electric cyan */
+      --cyan-dim:    rgba(0,212,255,0.14);
+      --cyan-glow:   rgba(0,212,255,0.35);
+      --magenta:     #A855F7;   /* vivid violet */
+      --mag-dim:     rgba(168,85,247,0.12);
+      --blue:        #3B82F6;
+      --blue-bright: #60A5FA;
+      --blue-dim:    rgba(59,130,246,0.14);
+      --green:       #10FFAA;   /* neon mint */
+      --orange:      #FF7849;
+      --red:         #FF4D6D;
+      --amber:       #FFB700;   /* GOD MODE */
+      --violet:      #7C3AED;
+
+      /* ── Backgrounds ── */
+      --bg-void:    #04060F;
+      --bg-deep:    #080C18;
+      --bg-panel:   rgba(6,10,22,0.97);
+      --bg-card:    rgba(10,16,34,0.70);
+      --bg-card-h:  rgba(16,26,52,0.85);
+
+      /* ── Borders ── */
+      --border:     rgba(0,212,255,0.10);
+      --border-h:   rgba(0,212,255,0.28);
+      --border-sel: rgba(0,212,255,0.60);
+
+      /* ── Text ── */
+      --t-hi:    #EEF2FF;
+      --t-med:   #8BA3C7;
+      --t-low:   #3D5473;
+      --t-dim:   #182030;
+
+      --ease-out:     cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+      --t-fast: 0.12s;
+      --t-mid:  0.28s;
+      --t-slow: 0.5s;
+
+      --r-xl: 16px;
+      --r-lg: 12px;
+      --r-md: 8px;
+      --r-sm: 5px;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--bg-void);
+      font-family: 'Inter', sans-serif;
+      color: var(--t-med);
+    }
+
+    /* ═══════════════════════════════════════════
+       ANIMATED BACKGROUND NEBULA
+    ═══════════════════════════════════════════ */
+    .bg-canvas {
+      position: fixed; inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      animation: orbDrift 12s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    .bg-orb:nth-child(1) {
+      width: 700px; height: 500px;
+      top: -150px; left: -200px;
+      background: radial-gradient(circle, rgba(0,212,255,0.13) 0%, rgba(59,130,246,0.06) 50%, transparent 70%);
+      animation-delay: 0s; animation-duration: 14s;
+    }
+    .bg-orb:nth-child(2) {
+      width: 600px; height: 600px;
+      bottom: -150px; right: -120px;
+      background: radial-gradient(circle, rgba(124,58,237,0.12) 0%, rgba(168,85,247,0.05) 50%, transparent 70%);
+      animation-delay: -5s; animation-duration: 18s;
+    }
+    .bg-orb:nth-child(3) {
+      width: 400px; height: 400px;
+      top: 38%; left: 38%;
+      background: radial-gradient(circle, rgba(16,255,170,0.06) 0%, transparent 70%);
+      animation-delay: -9s; animation-duration: 22s;
+    }
+
+    @keyframes orbDrift {
+      0%   { transform: translate(0, 0) scale(1); }
+      50%  { transform: translate(50px, 35px) scale(1.12); }
+      100% { transform: translate(-25px, 55px) scale(0.93); }
+    }
+
+    /* Grid lines background */
+    .bg-grid {
+      position: fixed; inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 80%);
+      animation: gridShift 20s linear infinite;
+    }
+    @keyframes gridShift {
+      0%   { background-position: 0 0; }
+      100% { background-position: 60px 60px; }
+    }
+
+    /* scan line sweep */
+    .bg-scan {
+      position: fixed; inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0,212,255,0.012) 50%,
+        transparent 100%
+      );
+      background-size: 100% 200px;
+      animation: scanSweep 6s linear infinite;
+    }
+
+    @keyframes scanSweep {
+      0%   { background-position: 0 -200px; }
+      100% { background-position: 0 100vh; }
+    }
+
+    /* ═══════════════════════════════════════════
+       MAP
+    ═══════════════════════════════════════════ */
+    #map { position: absolute; inset: 0; }
+
+    /* ═══════════════════════════════════════════
+       TOP COMMAND STRIP
+    ═══════════════════════════════════════════ */
+    #top-bar {
+      position: fixed;
+      top: 10px; left: 10px; right: 10px;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 18px;
+      height: 60px;
+      background: rgba(4, 8, 20, 0.95);
+      backdrop-filter: blur(32px);
+      -webkit-backdrop-filter: blur(32px);
+      border: 1px solid rgba(0,212,255,0.14);
+      border-radius: var(--r-xl);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04) inset,
+        0 1px 0 rgba(0,212,255,0.10) inset,
+        0 8px 40px rgba(0,0,0,0.80),
+        0 0 80px rgba(0,212,255,0.06),
+        0 0 160px rgba(124,58,237,0.04);
+      animation: topBarGlow 4s ease-in-out infinite alternate;
+    }
+    @keyframes topBarGlow {
+      from { box-shadow: 0 0 0 1px rgba(255,255,255,0.04) inset, 0 1px 0 rgba(0,212,255,0.10) inset, 0 8px 40px rgba(0,0,0,0.80), 0 0 80px rgba(0,212,255,0.06), 0 0 160px rgba(124,58,237,0.04); }
+      to   { box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset, 0 1px 0 rgba(0,212,255,0.18) inset, 0 8px 40px rgba(0,0,0,0.80), 0 0 120px rgba(0,212,255,0.12), 0 0 200px rgba(124,58,237,0.08); }
+    }
+
+    /* Brand */
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .brand-hex {
+      position: relative;
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .brand-hex::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(96,165,250,0.14), rgba(37,99,235,0.07));
+      border: 1px solid rgba(96,165,250,0.22);
+      border-radius: 10px;
+      animation: hexPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes hexPulse {
+      0%,100% { box-shadow: 0 0 8px rgba(96,165,250,0.15), inset 0 0 8px rgba(96,165,250,0.04); }
+      50%      { box-shadow: 0 0 24px rgba(96,165,250,0.35), 0 0 48px rgba(96,165,250,0.10), inset 0 0 16px rgba(96,165,250,0.08); }
+    }
+
+    .brand-icon-svg {
+      position: relative; z-index: 1;
+      font-size: 20px;
+      filter: drop-shadow(0 0 6px rgba(96,165,250,0.6));
+    }
+
+    .brand-text { display: flex; flex-direction: column; gap: 0; }
+
+    .brand-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      background: linear-gradient(90deg, var(--blue-bright) 0%, #E2E8F0 55%, var(--magenta) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+
+    .brand-sub {
+      font-size: 8px;
+      color: var(--t-low);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-top: 3px;
+    }
+
+    .v-divider {
+      width: 1px; height: 32px;
+      background: linear-gradient(to bottom, transparent, var(--border), transparent);
+      flex-shrink: 0;
+    }
+
+    /* Stat cards in top bar */
+    .stats-row {
+      display: flex; gap: 6px;
+      flex: 1;
+    }
+
+    .stat-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      padding: 6px 16px;
+      min-width: 80px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+      transition:
+        border-color var(--t-mid) var(--ease-out),
+        box-shadow var(--t-mid) var(--ease-out),
+        transform var(--t-mid) var(--ease-spring);
+    }
+
+    .stat-chip::before {
+      content: '';
+      position: absolute; top: 0; left: 10%; right: 10%;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.15), transparent);
+    }
+
+    .stat-chip:hover {
+      border-color: var(--border-h);
+      transform: translateY(-2px);
+      box-shadow: 0 0 20px rgba(0,245,255,0.1), 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .stat-chip-accent {
+      position: absolute;
+      left: 0; top: 15%; bottom: 15%;
+      width: 2px;
+      border-radius: 99px;
+    }
+
+    .stat-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1;
+      transition: all 0.4s var(--ease-out);
+      letter-spacing: -0.02em;
+    }
+
+    .stat-lbl {
+      font-size: 8px;
+      color: var(--t-low);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-weight: 700;
+    }
+
+    #s-active   { color: var(--green);       text-shadow: 0 0 16px rgba(52,211,153,0.45); }
+    #s-delivered { color: var(--blue-bright); text-shadow: 0 0 16px rgba(147,197,253,0.35); }
+    #s-god       { color: var(--amber);       text-shadow: 0 0 20px rgba(245,158,11,0.55); }
+
+    .spacer { flex: 1; }
+
+
+
+    /* Deploy button */
+    #deploy-btn {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0c1830 0%, #081020 50%, #0a1428 100%);
+      border: 1px solid rgba(96,165,250,0.30);
+      border-radius: var(--r-lg);
+      color: var(--cyan);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 0 22px;
+      height: 38px;
+      cursor: pointer;
+      transition: all var(--t-mid) var(--ease-out);
+      white-space: nowrap;
+      flex-shrink: 0;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    #deploy-btn::before {
+      content: '';
+      position: absolute; top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(96,165,250,0.10), transparent);
+      transition: left 0.6s ease;
+    }
+
+    #deploy-btn::after {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: var(--r-lg);
+      box-shadow: inset 0 1px 0 rgba(96,165,250,0.12);
+    }
+
+    #deploy-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #122060 0%, #0e1a50 50%, #142260 100%);
+      border-color: var(--cyan);
+      box-shadow:
+        0 0 20px rgba(96,165,250,0.25),
+        0 0 60px rgba(96,165,250,0.08),
+        0 0 100px rgba(37,99,235,0.06);
+      transform: translateY(-2px);
+      color: var(--t-hi);
+    }
+
+    #deploy-btn:hover:not(:disabled)::before { left: 100%; }
+
+    #deploy-btn:active:not(:disabled) {
+      transform: scale(0.97) translateY(0);
+      box-shadow: 0 0 12px rgba(0,245,255,0.2);
+    }
+
+    #deploy-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* ═══════════════════════════════════════════
+       MAIN LAYOUT
+    ═══════════════════════════════════════════ */
+    #layout {
+      position: fixed;
+      top: 78px; left: 10px; right: 10px; bottom: 10px;
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+    }
+
+    /* ═══════════════════════════════════════════
+       MAP WRAPPER
+    ═══════════════════════════════════════════ */
+    #map-wrap {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+      border-radius: var(--r-xl);
+      overflow: hidden;
+      border: 1px solid rgba(96,165,250,0.08);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.02) inset,
+        0 0 60px rgba(37,99,235,0.06),
+        0 0 120px rgba(96,165,250,0.03);
+    }
+
+    /* Vignette overlays on map */
+    #map-wrap::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(to right, rgba(3,8,20,0.45) 0%, transparent 18%),
+        linear-gradient(to left,  rgba(3,8,20,0.45) 0%, transparent 18%),
+        linear-gradient(to bottom,rgba(3,8,20,0.25) 0%, transparent 14%),
+        linear-gradient(to top,   rgba(3,8,20,0.25) 0%, transparent 14%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Glow border on map */
+    #map-wrap::after {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: var(--r-xl);
+      box-shadow: inset 0 0 0 1px rgba(96,165,250,0.04);
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    /* ═══════════════════════════════════════════
+       PANEL BASE
+    ═══════════════════════════════════════════ */
+    .panel {
+      position: relative;
+      background: var(--bg-panel);
+      backdrop-filter: blur(32px);
+      -webkit-backdrop-filter: blur(32px);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(0,245,255,0.20), rgba(41,121,255,0.15), transparent);
+      z-index: 1;
+    }
+
+    /* ═══════════════════════════════════════════
+       LEFT SIDEBAR — FLEET ROSTER
+    ═══════════════════════════════════════════ */
+    #sidebar {
+      flex-shrink: 0;
+      width: 256px;
+      z-index: 10;
+      animation: panelSlideLeft 0.5s var(--ease-out) both;
+    }
+
+    @keyframes panelSlideLeft {
+      from { opacity: 0; transform: translateX(-20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .sb-header {
+      padding: 14px 16px 10px;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .sb-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .sb-title-group {
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .live-dot {
+      position: relative;
+      width: 8px; height: 8px;
+      flex-shrink: 0;
+    }
+
+    .live-dot::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+    }
+
+    .live-dot::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(0,255,136,0.4);
+      animation: livePulse 2s ease-in-out infinite;
+    }
+
+    @keyframes livePulse {
+      0%,100% { transform: scale(1); opacity: 0.8; }
+      50%      { transform: scale(1.5); opacity: 0; }
+    }
+
+    .sb-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 8.5px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: var(--t-low);
+      text-transform: uppercase;
+    }
+
+    .sb-count-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--cyan);
+      background: rgba(0,245,255,0.08);
+      border: 1px solid rgba(0,245,255,0.2);
+      border-radius: 99px;
+      padding: 2px 9px;
+    }
+
+    .sb-search {
+      padding: 0 16px 12px;
+      flex-shrink: 0;
+    }
+
+    .sb-search input {
+      width: 100%;
+      background: rgba(6,16,40,0.6);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      color: var(--t-med);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      padding: 8px 12px;
+      outline: none;
+      transition: border-color var(--t-mid), box-shadow var(--t-mid);
+    }
+
+    .sb-search input:focus {
+      border-color: rgba(96,165,250,0.30);
+      box-shadow: 0 0 0 2px rgba(96,165,250,0.06), 0 0 12px rgba(96,165,250,0.04);
+    }
+
+    .sb-search input::placeholder { color: var(--t-dim); }
+
+    .sb-divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+      flex-shrink: 0;
+      margin: 0 0 4px;
+    }
+
+    #fleet-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 8px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0,245,255,0.15) transparent;
+      scroll-behavior: smooth;
+    }
+
+    #fleet-list::-webkit-scrollbar { width: 3px; }
+    #fleet-list::-webkit-scrollbar-thumb {
+      background: rgba(0,245,255,0.15);
+      border-radius: 99px;
+    }
+
+    /* ── Fleet Item ── */
+    .fleet-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      margin-bottom: 4px;
+      cursor: pointer;
+      border-radius: var(--r-lg);
+      border: 1px solid rgba(255,255,255,0.04);
+      background: rgba(6,14,35,0.5);
+      position: relative;
+      overflow: hidden;
+      transition:
+        background var(--t-fast) ease,
+        border-color var(--t-mid) ease,
+        transform var(--t-mid) var(--ease-spring),
+        box-shadow var(--t-mid) ease;
+    }
+
+    .fleet-item::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(120deg, rgba(0,245,255,0) 0%, rgba(0,245,255,0.03) 100%);
+      opacity: 0;
+      transition: opacity var(--t-mid) ease;
+      border-radius: var(--r-lg);
+    }
+
+    .fleet-item:hover {
+      background: var(--bg-card-h);
+      border-color: rgba(0,245,255,0.18);
+      transform: translateY(-1px) scale(1.01);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 12px rgba(0,245,255,0.05);
+    }
+
+    .fleet-item:hover::before { opacity: 1; }
+
+    .fleet-item.selected {
+      background: rgba(0,245,255,0.055);
+      border-color: rgba(0,245,255,0.55);
+      box-shadow:
+        0 0 0 1px rgba(0,245,255,0.15) inset,
+        0 0 20px rgba(0,245,255,0.08),
+        0 4px 16px rgba(0,0,0,0.3);
+      transform: translateY(-1px);
+    }
+
+    .fleet-item.selected::before { opacity: 1; }
+
+    .fi-indicator {
+      position: absolute; left: 0; top: 18%; bottom: 18%;
+      width: 3px;
+      border-radius: 99px;
+      opacity: 0;
+      transition: opacity var(--t-mid) ease;
+    }
+
+    .fleet-item.selected .fi-indicator { opacity: 1; }
+
+    .fi-dot-wrap {
+      flex-shrink: 0;
+      position: relative;
+      width: 12px; height: 12px;
+    }
+
+    .fi-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      position: absolute; inset: 0;
+    }
+
+    .fi-dot::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      background: inherit;
+      opacity: 0.2;
+      filter: blur(4px);
+      animation: dotBreath 2s ease-in-out infinite;
+    }
+
+    @keyframes dotBreath {
+      0%,100% { opacity: 0.15; transform: scale(1); }
+      50%      { opacity: 0.35; transform: scale(1.3); }
+    }
+
+    .fi-body { flex: 1; min-width: 0; }
+
+    .fi-id {
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.04em;
+      display: flex; align-items: center; gap: 5px;
+      color: var(--t-hi);
+    }
+
+    .fi-zone {
+      font-size: 9.5px;
+      color: var(--t-low);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .fi-prog-wrap {
+      height: 2px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 99px;
+      margin-top: 5px;
+      overflow: hidden;
+    }
+
+    .fi-prog {
+      height: 2px;
+      border-radius: 99px;
+      transition: width 0.8s var(--ease-out);
+      position: relative;
+    }
+
+    .fi-prog::after {
+      content: '';
+      position: absolute; right: 0; top: 0;
+      width: 8px; height: 100%;
+      background: rgba(255,255,255,0.7);
+      border-radius: 99px;
+      filter: blur(1px);
+    }
+
+    .fi-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+
+    .fi-eta {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--t-low);
+      font-weight: 600;
+    }
+
+    .fi-fuel {
+      font-size: 9px;
+      color: var(--t-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .fi-fuel.low {
+      color: var(--orange);
+      text-shadow: 0 0 6px rgba(255,149,0,0.5);
+    }
+
+    /* ═══════════════════════════════════════════
+       RIGHT INSPECTOR — COCKPIT
+    ═══════════════════════════════════════════ */
+    #inspector {
+      flex-shrink: 0;
+      width: 300px;
+      z-index: 10;
+      transition:
+        transform 0.5s var(--ease-spring),
+        opacity 0.45s var(--ease-out);
+      animation: panelSlideRight 0.5s var(--ease-out) both;
+    }
+
+    @keyframes panelSlideRight {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    #inspector.hidden {
+      transform: translateX(28px) scale(0.97);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Inspector header */
+    .insp-header {
+      padding: 14px 16px 12px;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .insp-header-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .insp-id-block {}
+
+    .insp-label-text {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 7.5px;
+      letter-spacing: 0.22em;
+      color: var(--t-low);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .insp-fleet-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      background: linear-gradient(135deg, #ffffff 0%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+
+    .insp-actions {
+      display: flex; gap: 6px;
+    }
+
+    .insp-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      color: var(--t-med);
+      font-family: 'Inter', sans-serif;
+      font-size: 10.5px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 6px 12px;
+      transition: all var(--t-fast) ease;
+      letter-spacing: 0.04em;
+    }
+
+    .insp-btn:hover {
+      background: rgba(96,165,250,0.06);
+      border-color: rgba(96,165,250,0.28);
+      color: var(--cyan);
+      transform: translateY(-1px);
+      box-shadow: 0 0 10px rgba(96,165,250,0.08);
+    }
+
+    .insp-btn:active { transform: scale(0.96); }
+
+    .insp-btn.close {
+      color: var(--red);
+      border-color: rgba(255,51,102,0.25);
+    }
+
+    .insp-btn.close:hover {
+      background: rgba(255,51,102,0.1);
+      border-color: rgba(255,51,102,0.5);
+      color: var(--red);
+      box-shadow: 0 0 12px rgba(255,51,102,0.12);
+    }
+
+    .insp-divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+      flex-shrink: 0;
+    }
+
+    /* Inspector scroll body */
+    #insp-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 14px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0,245,255,0.12) transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #insp-body::-webkit-scrollbar { width: 3px; }
+    #insp-body::-webkit-scrollbar-thumb {
+      background: rgba(0,245,255,0.12);
+      border-radius: 99px;
+    }
+
+    /* Status banner */
+    .insp-status-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border-radius: var(--r-md);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .insp-status-banner::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.15), transparent);
+    }
+
+    /* Hero metrics row */
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 7px;
+    }
+
+    .hero-metric {
+      background: rgba(6,14,35,0.7);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 12px 8px 10px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: border-color var(--t-mid), box-shadow var(--t-mid), transform var(--t-mid) var(--ease-spring);
+      cursor: default;
+    }
+
+    .hero-metric::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+    }
+
+    .hero-metric:hover {
+      border-color: var(--border-h);
+      transform: translateY(-2px);
+      box-shadow: 0 0 16px rgba(0,245,255,0.08), 0 4px 16px rgba(0,0,0,0.3);
+    }
+
+    .hm-label {
+      font-size: 7px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--t-low);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .hm-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .hm-unit {
+      font-size: 9px;
+      color: var(--t-low);
+      margin-top: 2px;
+    }
+
+    /* Data block */
+    .data-block {
+      background: rgba(6,14,35,0.6);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 12px 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .data-block::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
+    }
+
+    .db-label {
+      font-size: 7.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--t-low);
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .db-accent-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--border), transparent);
+    }
+
+    /* Progress bars */
+    .progress-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .progress-label-left {
+      font-size: 9.5px;
+      color: var(--t-med);
+      font-weight: 600;
+    }
+
+    .progress-label-right {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+    }
+
+    .bar-track {
+      height: 6px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 99px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.9s var(--ease-out);
+      position: relative;
+    }
+
+    .bar-fill::after {
+      content: '';
+      position: absolute; right: 0; top: 0;
+      width: 10px; height: 100%;
+      background: rgba(255,255,255,0.6);
+      border-radius: 99px;
+      filter: blur(2px);
+    }
+
+    .bar-steps {
+      font-size: 8.5px;
+      color: var(--t-dim);
+      text-align: right;
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 4px;
+    }
+
+    /* Route info */
+    .route-block {
+      background: rgba(6,14,35,0.6);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 12px 14px;
+    }
+
+    .route-node {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .route-node-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .route-node-dot::after {
+      content: '';
+      position: absolute; inset: -3px;
+      border-radius: 50%;
+      background: inherit;
+      opacity: 0.25;
+      filter: blur(2px);
+    }
+
+    .route-node-info { flex: 1; }
+    .route-node-sublabel {
+      font-size: 7.5px;
+      color: var(--t-low);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-weight: 700;
+    }
+    .route-node-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--t-hi);
+      margin-top: 1px;
+    }
+
+    .route-connector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 6px 0;
+      padding-left: 3px;
+    }
+
+    .route-line {
+      width: 2px;
+      height: 24px;
+      background: linear-gradient(to bottom, rgba(68,255,136,0.5), rgba(41,121,255,0.3));
+      border-radius: 99px;
+      flex-shrink: 0;
+    }
+
+    .route-stats-row {
+      font-size: 9.5px;
+      color: var(--t-low);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Efficiency block */
+    .eff-block {
+      background: rgba(6,14,35,0.6);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 12px 14px;
+    }
+
+    .eff-compare-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 9px;
+    }
+
+    .eff-vs-label {
+      font-size: 9px;
+      color: var(--t-dim);
+    }
+
+    .eff-result {
+      font-size: 12px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .eff-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .eff-cell {
+      background: rgba(255,255,255,0.025);
+      border-radius: var(--r-sm);
+      padding: 8px;
+      text-align: center;
+    }
+
+    .eff-cell-k {
+      font-size: 7.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--t-dim);
+      font-weight: 700;
+    }
+
+    .eff-cell-v {
+      font-size: 14px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 3px;
+    }
+
+    /* Coords */
+    .insp-coords {
+      font-size: 9px;
+      color: var(--t-dim);
+      font-family: 'JetBrains Mono', monospace;
+      text-align: center;
+      letter-spacing: 0.04em;
+      padding: 6px 0;
+    }
+
+    /* Focus button */
+    .focus-btn {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(37,99,235,0.12), rgba(96,165,250,0.06));
+      border: 1px solid rgba(37,99,235,0.30);
+      border-radius: var(--r-lg);
+      color: var(--blue-bright);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 12px;
+      cursor: pointer;
+      transition: all var(--t-mid) var(--ease-out);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .focus-btn::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to right, transparent, rgba(0,245,255,0.06), transparent);
+      opacity: 0;
+      transition: opacity var(--t-mid);
+    }
+
+    .focus-btn:hover {
+      background: linear-gradient(135deg, rgba(37,99,235,0.22), rgba(96,165,250,0.10));
+      border-color: rgba(96,165,250,0.45);
+      color: var(--cyan);
+      box-shadow: 0 0 20px rgba(96,165,250,0.10), 0 0 48px rgba(37,99,235,0.06);
+      transform: translateY(-2px);
+    }
+
+    .focus-btn:hover::before { opacity: 1; }
+
+    .focus-btn:active { transform: scale(0.97); }
+
+    /* Inspector entrance animation */
+    @keyframes inspEnter {
+      from { opacity: 0; transform: translateX(20px) scale(0.97); }
+      to   { opacity: 1; transform: translateX(0) scale(1); }
+    }
+
+    .insp-animate-in {
+      animation: inspEnter 0.45s var(--ease-spring) both;
+    }
+
+    /* ═══════════════════════════════════════════
+       TOAST NOTIFICATIONS
+    ═══════════════════════════════════════════ */
+    #notif-stack {
+      position: absolute;
+      top: 12px; right: 12px;
+      width: 290px;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .notif {
+      background: rgba(3,8,22,0.97);
+      backdrop-filter: blur(24px);
+      border-radius: var(--r-lg);
+      padding: 10px 14px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--border);
+      animation: notifIn 0.4s var(--ease-out);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.3);
+    }
+
+    .notif.n-critical { border-left-color: var(--cyan);    color: var(--cyan); }
+    .notif.n-warn     { border-left-color: var(--orange);  color: var(--orange); }
+    .notif.n-info     { border-left-color: var(--green);   color: var(--green); }
+    .notif.n-dim      { border-left-color: var(--blue-bright); color: var(--t-low); }
+
+    @keyframes notifIn  {
+      from { opacity:0; transform: translateX(24px) scale(0.96); }
+      to   { opacity:1; transform: none; }
+    }
+    @keyframes notifOut {
+      from { opacity:1; transform: none; }
+      to   { opacity:0; transform: translateX(24px) scale(0.96); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ═══════════════════════════════════════════
+       PRE-DEPLOY EMPTY STATE
+    ═══════════════════════════════════════════ */
+    #pre-deploy-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 16px;
+      padding: 24px;
+      text-align: center;
+    }
+    #pre-deploy-state .pd-icon {
+      font-size: 40px;
+      animation: pdIconPulse 2.5s ease-in-out infinite;
+    }
+    @keyframes pdIconPulse {
+      0%,100% { transform: scale(1); filter: brightness(1); }
+      50% { transform: scale(1.12); filter: brightness(1.4) drop-shadow(0 0 12px rgba(96,165,250,0.6)); }
+    }
+    #pre-deploy-state .pd-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      color: var(--t-low);
+      text-transform: uppercase;
+    }
+    #pre-deploy-state .pd-hint {
+      font-size: 10px;
+      color: var(--t-dim);
+      line-height: 1.7;
+    }
+
+    /* ═══════════════════════════════════════════
+       FULL-PAGE DEPLOY ANIMATION OVERLAY
+    ═══════════════════════════════════════════ */
+    #loading-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(3, 8, 20, 0.96);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      transition: opacity 0.7s ease;
+      overflow: hidden;
+    }
+    #loading-overlay.hidden { opacity: 0; pointer-events: none; }
+
+    /* Animated radar rings */
+    .deploy-radar {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(0,212,255,0.22);
+      animation: radarExpand 3s ease-out infinite;
+    }
+    .deploy-radar:nth-child(1) { width: 200px;  height: 200px;  animation-delay: 0s;   border-color: rgba(0,212,255,0.35); }
+    .deploy-radar:nth-child(2) { width: 380px;  height: 380px;  animation-delay: 0.75s; border-color: rgba(0,212,255,0.22); }
+    .deploy-radar:nth-child(3) { width: 600px;  height: 600px;  animation-delay: 1.5s;  border-color: rgba(124,58,237,0.18); }
+    .deploy-radar:nth-child(4) { width: 900px;  height: 900px;  animation-delay: 2.25s; border-color: rgba(0,212,255,0.08); }
+    @keyframes radarExpand {
+      0%   { opacity: 1;   transform: scale(0.15); }
+      70%  { opacity: 0.4; }
+      100% { opacity: 0;   transform: scale(1); }
+    }
+
+    /* Radar conic sweep */
+    .deploy-sweep {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 800px; height: 800px;
+      background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        rgba(0,212,255,0.18) 6deg,
+        rgba(0,212,255,0.08) 18deg,
+        transparent 35deg
+      );
+      animation: sweepRotate 2.4s linear infinite;
+      border-radius: 50%;
+    }
+    @keyframes sweepRotate { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+    /* Grid overlay */
+    .deploy-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.07) 1px, transparent 1px);
+      background-size: 44px 44px;
+      animation: gridFadeIn 0.8s ease-in both, gridShiftDeploy 15s linear infinite;
+    }
+    @keyframes gridFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes gridShiftDeploy { to { background-position: 44px 44px; } }
+
+    /* Hex node dots */
+    .deploy-node {
+      position: absolute;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan), 0 0 24px rgba(0,212,255,0.5);
+      animation: nodeFlicker 1.4s ease-in-out infinite alternate;
+    }
+    .deploy-node.violet {
+      background: var(--magenta);
+      box-shadow: 0 0 12px var(--magenta), 0 0 24px rgba(168,85,247,0.5);
+    }
+    .deploy-node.green {
+      background: var(--green);
+      box-shadow: 0 0 12px var(--green), 0 0 24px rgba(16,255,170,0.4);
+    }
+    @keyframes nodeFlicker {
+      0%   { opacity: 0.15; transform: scale(0.5); }
+      100% { opacity: 1;    transform: scale(1.4); }
+    }
+
+    /* Central glowing orb */
+    .deploy-orb {
+      position: relative;
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,212,255,0.30) 0%, rgba(59,130,246,0.12) 50%, transparent 70%);
+      border: 1.5px solid rgba(0,212,255,0.60);
+      display: flex; align-items: center; justify-content: center;
+      animation: orbBreath 1.8s ease-in-out infinite;
+      box-shadow:
+        0 0 40px rgba(0,212,255,0.50),
+        0 0 100px rgba(59,130,246,0.25),
+        inset 0 0 40px rgba(0,212,255,0.15);
+      z-index: 5; flex-shrink: 0;
+    }
+    @keyframes orbBreath {
+      0%,100% { box-shadow: 0 0 40px rgba(0,212,255,0.50), 0 0 100px rgba(59,130,246,0.25), inset 0 0 40px rgba(0,212,255,0.15); }
+      50%     { box-shadow: 0 0 80px rgba(0,212,255,0.90), 0 0 180px rgba(59,130,246,0.50), inset 0 0 60px rgba(0,212,255,0.30); }
+    }
+    .deploy-orb-icon { font-size: 48px; animation: orbIconSpin 10s linear infinite; }
+    @keyframes orbIconSpin {
+      0%   { transform: rotate(0deg) scale(1); }
+      50%  { transform: rotate(180deg) scale(1.08); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+
+    /* Orbiting fleet dots — 3 rings */
+    .deploy-orbit-ring {
+      position: absolute;
+      border-radius: 50%;
+    }
+    .deploy-orbit-ring-1 { width: 190px; height: 190px; border: 1px dashed rgba(0,212,255,0.25); animation: orbitRingSpin 3.5s linear infinite; }
+    .deploy-orbit-ring-2 { width: 280px; height: 280px; border: 1px dashed rgba(168,85,247,0.22); animation: orbitRingSpin 6s linear infinite reverse; }
+    .deploy-orbit-ring-3 { width: 360px; height: 360px; border: 1px dashed rgba(16,255,170,0.15); animation: orbitRingSpin 10s linear infinite; }
+    @keyframes orbitRingSpin { to { transform: rotate(360deg); } }
+
+    .orbit-dot {
+      position: absolute;
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      top: -4.5px; left: 50%; margin-left: -4.5px;
+      background: var(--cyan);
+      box-shadow: 0 0 14px var(--cyan), 0 0 28px rgba(0,212,255,0.5);
+    }
+    .orbit-dot-2 { background: var(--magenta); box-shadow: 0 0 14px var(--magenta); top: 50%; left: -4.5px; margin-top: -4.5px; }
+    .orbit-dot-3 { background: var(--green);   box-shadow: 0 0 14px var(--green);   top: 100%; left: 50%; margin-left: -4.5px; margin-top: -4.5px; }
+    .orbit-dot-4 { background: var(--amber);   box-shadow: 0 0 14px var(--amber);   top: 50%; left: 100%; margin-top: -4.5px; margin-left: -4.5px; }
+
+    /* Central content */
+    .deploy-content {
+      position: relative; z-index: 10;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 28px;
+    }
+
+    .deploy-title-block { text-align: center; }
+    .deploy-main-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #00D4FF 0%, #FFFFFF 45%, #A855F7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: titleGlow 1.6s ease-in-out infinite alternate;
+    }
+    @keyframes titleGlow {
+      from { filter: brightness(1); }
+      to   { filter: brightness(1.4) drop-shadow(0 0 30px rgba(0,212,255,0.7)); }
+    }
+    .deploy-sub-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: rgba(0,212,255,0.5);
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    /* Progress bar */
+    .deploy-progress-wrap {
+      width: 360px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .deploy-prog-track {
+      height: 4px;
+      background: rgba(0,212,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+      position: relative;
+    }
+    .deploy-prog-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #7C3AED, #00D4FF, #10FFAA);
+      background-size: 200% 100%;
+      box-shadow: 0 0 12px rgba(0,212,255,0.8);
+      animation: progSweep 8s ease-in-out forwards, progShimmer 1.5s linear infinite;
+    }
+    @keyframes progSweep {
+      0%   { width: 2%; }
+      90%  { width: 96%; }
+      100% { width: 96%; }
+    }
+    @keyframes progShimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Status message */
+    #loading-msg {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--cyan);
+      letter-spacing: 0.06em;
+      text-align: center;
+      animation: msgFade 0.4s ease-out;
+      min-height: 18px;
+    }
+    @keyframes msgFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    #loading-sub {
+      font-size: 10px;
+      color: var(--t-dim);
+      text-align: center;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Fleet counter */
+    .deploy-fleet-counter {
+      display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+      max-width: 340px;
+    }
+    .fleet-pip {
+      width: 11px; height: 11px;
+      border-radius: 3px;
+      background: rgba(0,212,255,0.06);
+      border: 1px solid rgba(0,212,255,0.18);
+      transition: all 0.3s var(--ease-spring);
+    }
+    .fleet-pip.active {
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan), 0 0 16px rgba(0,212,255,0.4);
+      border-color: var(--cyan);
+      transform: scale(1.2);
+    }
+
+    /* ═══════════════════════════════════════════
+       PULSE MARKER (selected vehicle)
+    ═══════════════════════════════════════════ */
+    .pulse-marker {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2.5px solid rgba(255,255,255,0.85);
+      animation: pulseRing 1.8s ease-out infinite;
+      position: relative;
+    }
+
+    .pulse-marker::before {
+      content: '';
+      position: absolute; inset: -6px;
+      border-radius: 50%;
+      background: inherit;
+      opacity: 0.12;
+      filter: blur(5px);
+      animation: pulseHalo 1.8s ease-out infinite;
+    }
+
+    .pulse-marker::after {
+      content: '';
+      position: absolute; inset: -12px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.15);
+      animation: pulseOuter 1.8s ease-out infinite;
+    }
+
+    .pulse-marker.god      { background: #F59E0B; box-shadow: 0 0 0 0 rgba(245,158,11,0.6); }
+    .pulse-marker.medical  { background: #F87171; box-shadow: 0 0 0 0 rgba(248,113,113,0.6); }
+    .pulse-marker.normal   { background: #60A5FA; box-shadow: 0 0 0 0 rgba(96,165,250,0.6); }
+    .pulse-marker.low_fuel { background: #FB923C; box-shadow: 0 0 0 0 rgba(251,146,60,0.6); }
+
+    @keyframes pulseRing {
+      0%   { transform: scale(1);    box-shadow: 0 0 0 0   rgba(96,165,250,0.6); }
+      70%  { transform: scale(1.18); box-shadow: 0 0 0 18px rgba(96,165,250,0); }
+      100% { transform: scale(1);    box-shadow: 0 0 0 0   rgba(96,165,250,0); }
+    }
+
+    @keyframes pulseHalo {
+      0%,100% { transform: scale(1); opacity: 0.12; }
+      50%      { transform: scale(1.4); opacity: 0.20; }
+    }
+
+    @keyframes pulseOuter {
+      0%   { transform: scale(1); opacity: 0.5; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+
+    /* ═══════════════════════════════════════════
+       MAPLIBRE OVERRIDES
+    ═══════════════════════════════════════════ */
+    .maplibregl-ctrl-attrib { font-size: 8px !important; }
+
+    .maplibregl-ctrl-group {
+      background: var(--bg-panel) !important;
+      border: 1px solid var(--border) !important;
+      backdrop-filter: blur(16px) !important;
+      border-radius: var(--r-md) !important;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+    }
+
+    .maplibregl-ctrl-group button {
+      background: transparent !important;
+      border: none !important;
+    }
+
+    .maplibregl-ctrl-scale {
+      background: rgba(3,8,22,0.9) !important;
+      border-color: var(--border) !important;
+      color: var(--t-dim) !important;
+      font-size: 9px !important;
+    }
+
+    /* ═══════════════════════════════════════════
+       COUNTING ANIMATION
+    ═══════════════════════════════════════════ */
+    @keyframes countFlash {
+      0%   { opacity: 0.4; transform: scale(0.85); }
+      60%  { opacity: 1;   transform: scale(1.06); }
+      100% { opacity: 1;   transform: scale(1); }
+    }
+
+    .count-flash {
+      animation: countFlash 0.35s var(--ease-spring);
+    }
+
+    /* Global scrollbar */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0,245,255,0.12) transparent;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Layered Background -->
+  <div class="bg-canvas">
+    <div class="bg-orb"></div>
+    <div class="bg-orb"></div>
+    <div class="bg-orb"></div>
+  </div>
+  <div class="bg-grid"></div>
+  <div class="bg-scan"></div>
+
+  <!-- TOP COMMAND STRIP -->
+  <div id="top-bar">
+    <div class="brand">
+      <div class="brand-hex">
+        <span class="brand-icon-svg">🌐</span>
+      </div>
+      <div class="brand-text">
+        <div class="brand-title">Neural Nexus</div>
+        <div class="brand-sub">Mumbai Fleet Command · MMR</div>
+      </div>
+    </div>
+
+    <div class="v-divider"></div>
+
+    <div class="stats-row">
+      <div class="stat-chip">
+        <div class="stat-chip-accent" style="background:var(--green);box-shadow:0 0 8px var(--green)"></div>
+        <div class="stat-val" id="s-active">0</div>
+        <div class="stat-lbl">Active</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-accent" style="background:var(--blue-bright);box-shadow:0 0 8px var(--blue-bright)"></div>
+        <div class="stat-val" id="s-delivered">0</div>
+        <div class="stat-lbl">Delivered</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-accent" style="background:var(--cyan);box-shadow:0 0 10px var(--cyan)"></div>
+        <div class="stat-val" id="s-god">0</div>
+        <div class="stat-lbl">GOD MODE</div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <button id="deploy-btn" onclick="deploy()">⚡ DEPLOY 50-FLEET SWARM</button>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div id="layout">
+
+    <!-- LEFT: Fleet Roster -->
+    <div class="panel" id="sidebar">
+      <div class="sb-header">
+        <div class="sb-header-top">
+          <div class="sb-title-group">
+            <div class="live-dot"></div>
+            <div class="sb-title">Fleet Roster</div>
+          </div>
+          <div class="sb-count-badge" id="sb-count">0 units</div>
+        </div>
+      </div>
+      <div class="sb-search">
+        <input id="fleet-search" type="text" placeholder="⌕  Search ID, zone, cargo…" oninput="filterFleets()" />
+      </div>
+      <div class="sb-divider"></div>
+      <!-- Pre-deploy empty state -->
+      <div id="pre-deploy-state">
+        <div class="pd-icon">🛰️</div>
+        <div class="pd-title">No Fleets Active</div>
+        <div class="pd-hint">Click <strong style="color:var(--cyan)">⚡ Deploy</strong><br>to launch the 50-fleet swarm</div>
+      </div>
+      <div id="fleet-list" style="display:none"></div>
+    </div>
+
+    <!-- CENTRE: Map + Notifications -->
+    <div id="map-wrap">
+      <div id="map"></div>
+      <div id="notif-stack"></div>
+    </div>
+
+    <!-- RIGHT: Fleet Inspector -->
+    <div class="panel" id="inspector">
+      <div class="insp-header">
+        <div class="insp-header-top">
+          <div class="insp-id-block">
+            <div class="insp-label-text">Selected Unit</div>
+            <div class="insp-fleet-id" id="insp-id">AX-01</div>
+          </div>
+          <div class="insp-actions">
+            <button class="insp-btn" onclick="focusSelectedFleet()">📍 Focus</button>
+            <button class="insp-btn close" onclick="closeInspector()">✕</button>
+          </div>
+        </div>
+      </div>
+      <div class="insp-divider"></div>
+      <div id="insp-body">
+        <p style="color:var(--t-dim);font-size:12px;text-align:center;margin:auto;line-height:1.8;padding:30px 0">
+          Select a fleet unit<br>from the roster or<br>click a vehicle on the map.
+        </p>
+      </div>
+    </div>
+
+  </div><!-- end #layout -->
+
+  <!-- FULL-PAGE DEPLOY ANIMATION OVERLAY -->
+  <div id="loading-overlay" class="hidden">
+    <!-- Background effects -->
+    <div class="deploy-grid"></div>
+    <div class="deploy-radar"></div>
+    <div class="deploy-radar"></div>
+    <div class="deploy-radar"></div>
+    <div class="deploy-radar"></div>
+    <div class="deploy-sweep"></div>
+    <!-- Scattered hex nodes -->
+    <div class="deploy-node" style="top:15%;left:12%;animation-delay:0.1s"></div>
+    <div class="deploy-node" style="top:25%;left:82%;animation-delay:0.4s"></div>
+    <div class="deploy-node" style="top:70%;left:8%;animation-delay:0.7s"></div>
+    <div class="deploy-node" style="top:80%;left:75%;animation-delay:0.2s"></div>
+    <div class="deploy-node" style="top:55%;left:91%;animation-delay:0.9s"></div>
+    <div class="deploy-node" style="top:10%;left:55%;animation-delay:0.5s"></div>
+    <div class="deploy-node" style="top:88%;left:42%;animation-delay:0.3s"></div>
+    <div class="deploy-node" style="top:40%;left:4%;animation-delay:0.8s"></div>
+    <!-- Central content -->
+    <div class="deploy-content">
+      <!-- Orb with orbiting rings -->
+      <div style="position:relative;display:flex;align-items:center;justify-content:center;width:280px;height:280px">
+        <div class="deploy-orbit-ring deploy-orbit-ring-2" style="position:absolute">
+          <div class="orbit-dot"></div>
+          <div class="orbit-dot orbit-dot-3"></div>
+        </div>
+        <div class="deploy-orbit-ring deploy-orbit-ring-1" style="position:absolute">
+          <div class="orbit-dot orbit-dot-2"></div>
+        </div>
+        <div class="deploy-orb">
+          <span class="deploy-orb-icon">🌐</span>
+        </div>
+      </div>
+      <!-- Title -->
+      <div class="deploy-title-block">
+        <div class="deploy-main-title">Deploying Swarm</div>
+        <div class="deploy-sub-title">Neural Nexus · Mumbai Command</div>
+      </div>
+      <!-- Messages -->
+      <div class="deploy-progress-wrap">
+        <div id="loading-msg">Initializing neural swarm…</div>
+        <div class="deploy-prog-track"><div class="deploy-prog-fill"></div></div>
+        <div id="loading-sub">Deploying 50 fleets across Mumbai</div>
+      </div>
+      <!-- Fleet pips -->
+      <div class="deploy-fleet-counter" id="fleet-pips"></div>
+    </div>
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  CONSTANTS & STATE
+    // ═══════════════════════════════════════════════════════════════════════════
+    const POLL_MS = 350;
+    let _routePollCount = 0;  // throttle route setData to every 5th poll
+    const FOLLOW_ZOOM = 14.5;
+
+    const COLORS = {
+      god:       '#F59E0B',   // amber  — GOD MODE
+      medical:   '#F87171',   // soft red — P1 priority
+      normal:    '#60A5FA',   // steel blue — standard
+      low_fuel:  '#FB923C',   // orange
+      delivered: '#1a2235',   // dim
+    };
+
+    const EMPTY_FC = { type: 'FeatureCollection', features: [] };
+
+    let mapReady = false;
+    let selectedFleetId = null;
+    let pulseMarker = null;
+    let allFleets = [];
+    let isFollowing = false;
+    let lastFrame = -1;
+
+    // Previous stat values for count animation
+    let _prevStats = { active: 0, delivered: 0, god_mode: 0 };
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  MAP INITIALISATION — UNCHANGED
+    // ═══════════════════════════════════════════════════════════════════════════
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+      center: [72.92, 19.10],
+      zoom: 10.6,
+      pitch: 25,
+      bearing: 0,
+      antialias: true,
+      maxBounds: [[72.55, 18.80], [73.50, 19.50]],
+      minZoom: 9.5,
+      maxZoom: 18,
+    });
+
+    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'bottom-right');
+    map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
+
+    map.on('load', () => {
+      // TomTom traffic
+      map.addSource('traffic-flow', {
+        type: 'raster',
+        tiles: [`https://api.tomtom.com/traffic/map/4/tile/flow/absolute/{z}/{x}/{y}.png?key=YLGrbeqrrvkTczVWNRbhtSDBARb2QWYw&thickness=2`],
+        tileSize: 256,
+        bounds: [72.55, 18.80, 73.50, 19.50],
+        minzoom: 9,
+        attribution: '© TomTom Traffic',
+      });
+      map.addLayer({
+        id: 'traffic-flow', type: 'raster', source: 'traffic-flow',
+        minzoom: 9,
+        paint: { 'raster-opacity': 0.65 }
+      });
+
+      // Mumbai boundary
+      map.addSource('mumbai-boundary', {
+        type: 'geojson',
+        data: {
+          type: 'Feature', properties: {},
+          geometry: {
+            type: 'Polygon',
+            coordinates: [[
+              [72.8147, 18.9068], [72.8231, 18.9109], [72.8297, 18.9315],
+              [72.8360, 18.9576], [72.8310, 18.9785], [72.8301, 19.0130],
+              [72.8172, 19.0430], [72.8200, 19.0753], [72.8223, 19.1099],
+              [72.8336, 19.1528], [72.8568, 19.2307], [72.8717, 19.2580],
+              [72.9090, 19.2512], [72.9630, 19.1980], [73.0060, 19.1950],
+              [73.0130, 19.1600], [72.9980, 19.1120], [72.9700, 19.0730],
+              [72.9516, 19.0461], [72.9200, 19.0522], [72.9100, 18.9900],
+              [72.8900, 18.9413], [72.8600, 18.9200], [72.8380, 18.9100],
+              [72.8147, 18.9068],
+            ]],
+          },
+        },
+      });
+      map.addLayer({
+        id: 'mumbai-boundary', type: 'line', source: 'mumbai-boundary',
+        paint: {
+          'line-color': '#60A5FA', 'line-width': 1.2,
+          'line-opacity': 0.28, 'line-dasharray': [5, 4],
+        },
+      });
+
+      // GeoJSON Sources
+      map.addSource('routes-all',      { type: 'geojson', data: EMPTY_FC });
+      map.addSource('routes-selected', { type: 'geojson', data: EMPTY_FC });
+      map.addSource('routes-traveled', { type: 'geojson', data: EMPTY_FC });
+      map.addSource('vehicles',        { type: 'geojson', data: EMPTY_FC });
+
+      // Layer 1: All routes (no blur for GPU perf)
+      map.addLayer({
+        id: 'routes-all',
+        type: 'line',
+        source: 'routes-all',
+        paint: {
+          'line-width': ['match', ['get', 'color'], 'god', 3, 'medical', 2.5, 2],
+          'line-opacity': 0.28,
+          'line-color': colorExpr(),
+          'line-blur': 0,
+        },
+      });
+
+      // Layer 2: Traveled path (green dashes)
+      map.addLayer({
+        id: 'routes-traveled',
+        type: 'line',
+        source: 'routes-traveled',
+        paint: {
+          'line-width': 3,
+          'line-opacity': 0.55,
+          'line-color': '#34D399',
+          'line-dasharray': [4, 4],
+        },
+      });
+
+      // Layer 3: Selected route (bright cyan glow)
+      map.addLayer({
+        id: 'routes-selected-glow',
+        type: 'line',
+        source: 'routes-selected',
+        paint: {
+          'line-width': 10,
+          'line-opacity': 0.18,
+          'line-color': '#00F5FF',
+          'line-blur': 4,
+        },
+      });
+
+      map.addLayer({
+        id: 'routes-selected',
+        type: 'line',
+        source: 'routes-selected',
+        paint: {
+          'line-width': 4,
+          'line-opacity': 0.95,
+          'line-color': '#FFFFFF',
+          'line-blur': 0.3,
+        },
+      });
+
+      // Layer 4: Vehicle dots (halo layer removed for performance)
+      map.addLayer({
+        id: 'vehicles',
+        type: 'circle',
+        source: 'vehicles',
+        paint: {
+          'circle-radius': ['match', ['get', 'color'], 'god', 10, 'medical', 8, 'delivered', 4, 6],
+          'circle-opacity': ['match', ['get', 'color'], 'delivered', 0.22, 1.0],
+          'circle-stroke-width': ['match', ['get', 'color'], 'delivered', 0, 2],
+          'circle-stroke-color': 'rgba(255,255,255,0.45)',
+          'circle-color': colorExpr(),
+        },
+      });
+
+      // Interactions
+      map.on('click', 'vehicles', (e) => {
+        const id = e.features[0].properties.id;
+        selectFleet(id, true);
+      });
+      map.on('mouseenter', 'vehicles', () => { map.getCanvas().style.cursor = 'pointer'; });
+      map.on('mouseleave', 'vehicles', () => { map.getCanvas().style.cursor = ''; });
+
+      mapReady = true;
+      startPolling();
+    });
+
+    function colorExpr() {
+      return [
+        'match', ['get', 'color'],
+        'god', COLORS.god,
+        'medical', COLORS.medical,
+        'low_fuel', COLORS.low_fuel,
+        'delivered', COLORS.delivered,
+        COLORS.normal,
+      ];
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  POLLING — UNCHANGED
+    // ═══════════════════════════════════════════════════════════════════════════
+    function startPolling() {
+      poll();
+      setInterval(poll, POLL_MS);
+    }
+
+    async function poll() {
+      try {
+        const data = await fetch('/api/state').then(r => r.json());
+        updateUI(data);
+        if (mapReady) updateMap(data);
+      } catch (e) { /* network hiccup — silently skip */ }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  UPDATE UI — enhanced with count animation
+    // ═══════════════════════════════════════════════════════════════════════════
+    function updateUI(data) {
+      animateStatValue('s-active',    data.stats.active);
+      animateStatValue('s-delivered', data.stats.delivered);
+      animateStatValue('s-god',       data.stats.god_mode);
+
+      const btn = document.getElementById('deploy-btn');
+      const overlay = document.getElementById('loading-overlay');
+      if (data.deploying) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Deploying…';
+        overlay.classList.remove('hidden');
+      } else {
+        btn.disabled = false;
+        btn.textContent = '⚡ DEPLOY 50-FLEET SWARM';
+        overlay.classList.add('hidden');
+      }
+
+      allFleets = data.fleets;
+      renderFleetList(data.fleets);
+      renderLog(data.log);
+
+      if (selectedFleetId) {
+        const f = data.fleets.find(x => x.id === selectedFleetId);
+        if (f) liveUpdateInspector(f);
+      }
+    }
+
+    // Animated stat value update
+    function animateStatValue(id, newVal) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const cur = parseInt(el.textContent) || 0;
+      if (cur === newVal) return;
+      el.textContent = newVal;
+      el.classList.remove('count-flash');
+      void el.offsetWidth; // reflow
+      el.classList.add('count-flash');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  UPDATE MAP — routes throttled to every 5th poll, vehicles every poll
+    // ═══════════════════════════════════════════════════════════════════════════
+    function updateMap(data) {
+      _routePollCount++;
+      // Vehicle dots update every poll (smooth movement)
+      map.getSource('vehicles').setData(data.vehicles);
+
+      // Routes update every 5th poll (~1.75s) — they don't need sub-second accuracy
+      if (_routePollCount % 5 === 0) {
+        let allRoutes = data.routes;
+        let selRoutes = EMPTY_FC;
+
+        if (selectedFleetId) {
+          selRoutes = {
+            type: 'FeatureCollection',
+            features: data.routes.features.filter(f => f.properties.id === selectedFleetId),
+          };
+          allRoutes = {
+            type: 'FeatureCollection',
+            features: data.routes.features.filter(f => f.properties.id !== selectedFleetId),
+          };
+        }
+        map.getSource('routes-all').setData(allRoutes);
+        map.getSource('routes-selected').setData(selRoutes);
+      }
+
+      if (selectedFleetId && isFollowing) {
+        const vf = data.vehicles.features.find(f => f.properties.id === selectedFleetId);
+        if (vf) {
+          map.easeTo({ center: vf.geometry.coordinates, duration: POLL_MS * 0.9 });
+          if (pulseMarker) pulseMarker.setLngLat(vf.geometry.coordinates);
+        }
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  FLEET LIST — rebuilt cards
+    // ═══════════════════════════════════════════════════════════════════════════
+    let _fleetsEverDeployed = false;
+
+    function renderFleetList(fleets) {
+      const q = document.getElementById('fleet-search').value.toLowerCase();
+      const out = document.getElementById('fleet-list');
+      document.getElementById('sb-count').textContent = `${fleets.length} units`;
+
+      // Show fleet list only after first deploy
+      if (fleets.length > 0 && !_fleetsEverDeployed) {
+        _fleetsEverDeployed = true;
+        document.getElementById('pre-deploy-state').style.display = 'none';
+        out.style.display = '';
+      }
+
+      const filtered = q
+        ? fleets.filter(f =>
+            f.id.toLowerCase().includes(q) ||
+            f.zone.toLowerCase().includes(q) ||
+            f.status.toLowerCase().includes(q) ||
+            prioLabel(f.prio).toLowerCase().includes(q)
+          )
+        : fleets;
+
+      out.innerHTML = filtered.map(f => {
+        const col = COLORS[f.color] || COLORS.normal;
+        const isSel = f.id === selectedFleetId;
+        const isDelivered = f.status === 'Delivered';
+        const pLabel = prioLabel(f.prio);
+        return `
+<div class="fleet-item${isSel ? ' selected' : ''}" onclick="selectFleet('${f.id}', true)">
+  <div class="fi-indicator" style="background:${col};box-shadow:0 0 8px ${col}"></div>
+  <div class="fi-dot-wrap">
+    <div class="fi-dot" style="background:${col};box-shadow:0 0 8px ${col}99"></div>
+  </div>
+  <div class="fi-body">
+    <div class="fi-id">${f.id} <span style="font-size:8px;font-family:'Inter',sans-serif;background:${col}18;border:1px solid ${col}44;border-radius:4px;padding:1px 5px;color:${col}">${pLabel}</span></div>
+    <div class="fi-zone">${f.zone}</div>
+    <div class="fi-prog-wrap">
+      <div class="fi-prog" style="width:${f.pct}%;background:linear-gradient(to right,${col}77,${col})"></div>
+    </div>
+  </div>
+  <div class="fi-meta">
+    <div class="fi-eta">${isDelivered ? '✅' : f.eta + 'm'}</div>
+    <div class="fi-fuel${f.fuel < 20 ? ' low' : ''}">${Math.round(f.fuel)}%</div>
+  </div>
+</div>`;
+      }).join('');
+    }
+
+    function filterFleets() { renderFleetList(allFleets); }
+
+    // Priority label — replaces cargo type in all UI elements
+    function prioLabel(prio) {
+      if (prio === 1) return 'HIGH';
+      if (prio === 2) return 'MED';
+      return 'LOW';
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  FLEET SELECTION & INSPECTOR — logic UNCHANGED
+    // ═══════════════════════════════════════════════════════════════════════════
+    async function selectFleet(id, flyTo = false) {
+      selectedFleetId = id;
+      isFollowing = true;
+      document.getElementById('insp-id').textContent = id;
+      document.getElementById('inspector').classList.remove('hidden');
+
+      document.querySelectorAll('.fleet-item').forEach(el => {
+        el.classList.toggle('selected', el.querySelector('.fi-id')?.textContent.startsWith(id));
+      });
+
+      try {
+        const detail = await fetch(`/api/fleet/${id}`).then(r => r.json());
+        if (detail.error) return;
+
+        renderInspector(detail);
+        refreshSelectedRoute(detail);
+        placePulseMarker(detail);
+
+        if (flyTo) {
+          map.flyTo({
+            center: [detail.cur_lon, detail.cur_lat],
+            zoom: FOLLOW_ZOOM,
+            pitch: 50,
+            duration: 1100,
+          });
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    function closeInspector() {
+      selectedFleetId = null;
+      isFollowing = false;
+      document.getElementById('inspector').classList.add('hidden');
+      document.querySelectorAll('.fleet-item.selected').forEach(el => el.classList.remove('selected'));
+      if (pulseMarker) { pulseMarker.remove(); pulseMarker = null; }
+      if (mapReady) {
+        map.getSource('routes-traveled').setData(EMPTY_FC);
+        map.getSource('routes-selected').setData(EMPTY_FC);
+      }
+    }
+
+    function focusSelectedFleet() {
+      if (!selectedFleetId) return;
+      fetch(`/api/fleet/${selectedFleetId}`).then(r => r.json()).then(d => {
+        if (d.error) return;
+        map.flyTo({ center: [d.cur_lon, d.cur_lat], zoom: 15.5, pitch: 60, duration: 900 });
+      });
+    }
+
+    function placePulseMarker(detail) {
+      if (pulseMarker) {
+        pulseMarker.setLngLat([detail.cur_lon, detail.cur_lat]);
+        return;
+      }
+      const el = document.createElement('div');
+      el.className = `pulse-marker ${detail.color}`;
+      pulseMarker = new maplibregl.Marker({ element: el, anchor: 'center' })
+        .setLngLat([detail.cur_lon, detail.cur_lat])
+        .addTo(map);
+    }
+
+    function refreshSelectedRoute(detail) {
+      if (!mapReady) return;
+      const traveled  = detail.route_traveled  || [];
+      const remaining = detail.route_remaining || [];
+
+      map.getSource('routes-traveled').setData({
+        type: 'FeatureCollection',
+        features: traveled.length >= 2 ? [{ type: 'Feature', geometry: { type: 'LineString', coordinates: traveled }, properties: {} }] : [],
+      });
+
+      map.getSource('routes-selected').setData({
+        type: 'FeatureCollection',
+        features: remaining.length >= 2 ? [{ type: 'Feature', geometry: { type: 'LineString', coordinates: remaining }, properties: {} }] : [],
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  RENDER INSPECTOR — cockpit layout
+    // ═══════════════════════════════════════════════════════════════════════════
+    function renderInspector(d) {
+      const col = COLORS[d.color] || COLORS.normal;
+      const fuelCol = d.fuel < 20 ? '#FF3366' : d.fuel < 40 ? '#FF9500' : '#00FF88';
+      const pLabel  = prioLabel(d.prio);
+      const prioCol = d.prio === 1 ? COLORS.medical : d.prio === 2 ? COLORS.normal : '#6a809e';
+
+      const statusLabel = {
+        'Active':       '● ACTIVE',
+        'GOD MODE':     '🚨 GOD MODE',
+        'Low Fuel':     '⛽ LOW FUEL',
+        'Delivered':    '✅ DELIVERED',
+        'Consolidated': '◈ CONSOLIDATED',
+        'Reassigned':   '↺ REASSIGNED',
+        'Swapped':      '⇄ SWAPPED',
+      }[d.status] || d.status;
+
+      const ts = d.time_saved_mins || 0;
+      const tsLabel = ts > 0 ? `▲ ${ts} min faster` : ts < 0 ? `▼ ${Math.abs(ts)} min slower` : '= On par';
+      const tsColor = ts > 0 ? '#00FF88' : ts < 0 ? '#FF9500' : '#6a809e';
+
+      const body = document.getElementById('insp-body');
+      body.innerHTML = `
+<div class="insp-animate-in" style="display:flex;flex-direction:column;gap:10px">
+
+  <!-- Status banner -->
+  <div class="insp-status-banner" style="color:${col};background:${col}12;border:1px solid ${col}35">
+    ${statusLabel}
+    <div style="flex:1"></div>
+  </div>
+
+  <!-- Hero metrics -->
+  <div class="hero-metrics">
+    <div class="hero-metric">
+      <div class="hm-label">ETA</div>
+      <div class="hm-value" id="i-eta" style="color:${col}">${d.eta}</div>
+      <div class="hm-unit">min</div>
+    </div>
+    <div class="hero-metric">
+      <div class="hm-label">Fuel</div>
+      <div class="hm-value" id="i-fuel-val" style="color:${fuelCol}">${Math.round(d.fuel)}</div>
+      <div class="hm-unit">%</div>
+    </div>
+    <div class="hero-metric">
+      <div class="hm-label">Priority</div>
+      <div class="hm-value" style="font-size:16px;color:${prioCol}">${pLabel}</div>
+      <div class="hm-unit">level</div>
+    </div>
+  </div>
+
+  <!-- Progress block -->
+  <div class="data-block">
+    <div class="db-label">Route Progress <div class="db-accent-line"></div></div>
+    <div class="progress-row">
+      <div class="progress-label-left">Completion</div>
+      <div class="progress-label-right" id="i-pct" style="color:${col}">${d.pct}%</div>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill" id="i-prog-bar" style="width:${d.pct}%;background:linear-gradient(to right,${col}66,${col})"></div>
+    </div>
+    <div class="bar-steps" id="i-steps">${d.current_step} / ${d.total_steps} waypoints</div>
+
+    <div style="height:8px"></div>
+
+    <div class="progress-row">
+      <div class="progress-label-left">Fuel Level</div>
+      <div class="progress-label-right" id="i-fuel" style="color:${fuelCol}">${Math.round(d.fuel)}%</div>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill" id="i-fuel-bar" style="width:${d.fuel}%;background:linear-gradient(to right,${fuelCol}66,${fuelCol})"></div>
+    </div>
+  </div>
+
+  <!-- Efficiency block -->
+  <div class="eff-block">
+    <div class="db-label">⚡ Route Efficiency <div class="db-accent-line"></div></div>
+    <div class="eff-compare-row">
+      <div class="eff-vs-label">vs. naive straight-line</div>
+      <div class="eff-result" style="color:${tsColor}">${tsLabel}</div>
+    </div>
+    <div class="eff-grid">
+      <div class="eff-cell">
+        <div class="eff-cell-k">Air-line Dist</div>
+        <div class="eff-cell-v" style="color:var(--t-med)">${d.straight_km||0}km</div>
+      </div>
+      <div class="eff-cell">
+        <div class="eff-cell-k">Road Dist</div>
+        <div class="eff-cell-v" style="color:var(--t-med)">${d.dist_km}km</div>
+      </div>
+      <div class="eff-cell">
+        <div class="eff-cell-k">Overhead</div>
+        <div class="eff-cell-v" style="color:#6a8aaa">+${d.road_overhead_pct||0}%</div>
+      </div>
+      <div class="eff-cell">
+        <div class="eff-cell-k">Reroutes</div>
+        <div class="eff-cell-v" style="color:var(--t-med)">${d.reroutes}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Route info -->
+  <div class="route-block">
+    <div class="db-label" style="margin-bottom:12px">Route Vector <div class="db-accent-line"></div></div>
+    <div class="route-node">
+      <div class="route-node-dot" style="background:#00FF88;box-shadow:0 0 8px #00FF8866"></div>
+      <div class="route-node-info">
+        <div class="route-node-sublabel">Origin</div>
+        <div class="route-node-name">${d.start_zone || '—'}</div>
+      </div>
+    </div>
+    <div class="route-connector">
+      <div class="route-line"></div>
+      <div class="route-stats-row">${d.dist_km} km road &nbsp;|&nbsp; ${d.straight_km||0} km air</div>
+    </div>
+    <div class="route-node">
+      <div class="route-node-dot" style="background:${col};box-shadow:0 0 8px ${col}66"></div>
+      <div class="route-node-info">
+        <div class="route-node-sublabel">Destination</div>
+        <div class="route-node-name">${d.zone}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coordinates -->
+  <div class="insp-coords" id="i-coords">${d.cur_lat.toFixed(5)}°N &nbsp; ${d.cur_lon.toFixed(5)}°E</div>
+
+  <!-- Focus button -->
+  <button class="focus-btn" onclick="focusSelectedFleet()">📍 LOCK CAMERA ON UNIT</button>
+
+</div>`;
+    }
+
+    // Lightweight live update — UNCHANGED logic
+    function liveUpdateInspector(f) {
+      const pct = f.pct || 0;
+      const fuelCol = f.fuel < 20 ? '#FF3366' : f.fuel < 40 ? '#FF9500' : '#00FF88';
+      const col = COLORS[f.color] || COLORS.normal;
+      safeSet('i-pct',      `${pct}%`);
+      safeSet('i-eta',      `${f.eta}`);
+      safeSet('i-fuel',     `${Math.round(f.fuel)}%`);
+      safeSet('i-fuel-val', `${Math.round(f.fuel)}`);
+      safeStyle('i-prog-bar', `width:${pct}%;background:linear-gradient(to right,${col}66,${col})`);
+      safeStyle('i-fuel-bar', `width:${f.fuel}%;background:linear-gradient(to right,${fuelCol}66,${fuelCol})`);
+    }
+
+    function safeSet(id, val)     { const el = document.getElementById(id); if (el) el.textContent = val; }
+    function safeStyle(id, style) { const el = document.getElementById(id); if (el) el.style.cssText = style; }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  TOAST NOTIFICATIONS — critical events only (GOD MODE + system online)
+    // ═══════════════════════════════════════════════════════════════════════════
+    const _seenLogs = new Set();
+
+    function renderLog(logs) {
+      logs.slice(0, 6).forEach(msg => {
+        if (_seenLogs.has(msg)) return;
+        _seenLogs.add(msg);
+        // Only surface: GOD MODE escalations and system online confirmation
+        const isCritical =
+          msg.includes('GOD MODE') ||
+          msg.includes('SLA BREACH') ||
+          msg.includes('GRIDLOCK OVERRIDE') ||
+          msg.includes('SYSTEM ONLINE');
+        if (!isCritical) return;
+        _showToast(msg);
+      });
+      if (_seenLogs.size > 120) _seenLogs.clear();
+    }
+
+    function _showToast(msg) {
+      const stack = document.getElementById('notif-stack');
+      if (!stack) return;
+      const el = document.createElement('div');
+      el.className = 'notif';
+      if (msg.includes('GOD MODE') || msg.includes('SLA') || msg.includes('GRIDLOCK'))
+        el.classList.add('n-critical');
+      else
+        el.classList.add('n-info');
+      el.textContent = msg.replace(/^\[\d{2}:\d{2}:\d{2}\] /, '');
+      stack.prepend(el);
+      // Max 2 toasts visible at once
+      while (stack.children.length > 2) stack.lastChild.remove();
+      setTimeout(() => {
+        el.style.animation = 'notifOut 0.3s ease forwards';
+        setTimeout(() => el.remove(), 310);
+      }, 4000);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  DEPLOY — clean atmospheric messages, no API references
+    // ═══════════════════════════════════════════════════════════════════════════
+    const _DEPLOY_MSGS = [
+      'Initializing neural swarm…',
+      'Plotting 50 routes across Mumbai…',
+      'Calibrating live traffic mesh…',
+      'AI routing in progress…',
+      'Optimizing fleet assignments…',
+      'Resolving final waypoints…',
+      'Deploying fleet command…',
+    ];
+    let _deployTimer = null;
+
+    async function deploy() {
+      document.getElementById('deploy-btn').disabled = true;
+      document.getElementById('loading-overlay').classList.remove('hidden');
+
+      // Build 50 pip dots
+      const pipsEl = document.getElementById('fleet-pips');
+      pipsEl.innerHTML = Array.from({length: 50}, (_, i) =>
+        `<div class="fleet-pip" id="pip-${i}"></div>`
+      ).join('');
+
+      // Animate pips lighting up sequentially over ~10s
+      let pipIdx = 0;
+      const pipTimer = setInterval(() => {
+        if (pipIdx < 50) {
+          document.getElementById(`pip-${pipIdx}`)?.classList.add('active');
+          pipIdx++;
+        } else {
+          clearInterval(pipTimer);
+        }
+      }, 200);
+
+      let mi = 0;
+      document.getElementById('loading-msg').textContent = _DEPLOY_MSGS[0];
+      clearInterval(_deployTimer);
+      _deployTimer = setInterval(() => {
+        const ov = document.getElementById('loading-overlay');
+        if (ov.classList.contains('hidden')) { clearInterval(_deployTimer); clearInterval(pipTimer); return; }
+        mi = (mi + 1) % _DEPLOY_MSGS.length;
+        const msgEl = document.getElementById('loading-msg');
+        msgEl.style.animation = 'none'; void msgEl.offsetWidth;
+        msgEl.style.animation = 'msgFade 0.4s ease-out';
+        msgEl.textContent = _DEPLOY_MSGS[mi];
+      }, 2000);
+      try {
+        await fetch('/api/deploy', { method: 'POST' });
+      } catch (e) {
+        clearInterval(_deployTimer);
+        document.getElementById('deploy-btn').disabled = false;
+        document.getElementById('loading-overlay').classList.add('hidden');
+      }
+    }
+  </script>
+</body>
+</html>
