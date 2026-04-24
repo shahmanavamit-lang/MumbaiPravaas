@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from marl_router import MARLRouter
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
-TOMTOM_API_KEY   = "YLGrbeqrrvkTczVWNRbhtSDBARb2QWYw"
+TOMTOM_API_KEY   = " "
 NUM_FLEETS       = 50
 MOVE_SPEED_PRIO  = 0.40   # steps/frame for Priority-1 (Medical)
 MOVE_SPEED_NORM  = 0.22   # steps/frame for normal cargo
