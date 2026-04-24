@@ -14,7 +14,7 @@ STATE_FILE = os.path.join(BASE_DIR, "state.json")
 app        = Flask(__name__)
 CORS(app)
 
-TOMTOM_API_KEY  = "YLGrbeqrrvkTczVWNRbhtSDBARb2QWYw"
+TOMTOM_API_KEY  = " "
 NUM_FLEETS      = 50
 NUM_SLOTS       = 5
 FLEETS_PER_SLOT = 10
