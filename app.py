@@ -255,6 +255,43 @@ def _prefetch_all_routes():
 # Thread is started AFTER _log is defined — see below build_slot()
 
 
+def _select_slot_route_entries(slot_idx):
+    """Choose a diverse set of cached routes for a deploy slot.
+
+    This prevents every slot from reusing the exact same traffic corridor
+    and encourages distinct origin/destination coverage across Mumbai.
+    """
+    with _cache_lock:
+        candidates = list(_route_cache)
+
+    if not candidates:
+        return []
+
+    random.shuffle(candidates)
+    chosen = []
+    used_starts = set()
+    used_dests = set()
+
+    # First pass: choose route entries with distinct start/dest zones.
+    for path, dist, eta, sz, dz in candidates:
+        if len(chosen) >= FLEETS_PER_SLOT:
+            break
+        if sz["name"] in used_starts or dz["name"] in used_dests:
+            continue
+        chosen.append((path, dist, eta, sz, dz))
+        used_starts.add(sz["name"])
+        used_dests.add(dz["name"])
+
+    # If we still need fleets, add remaining entries without strict distinctness.
+    for entry in candidates:
+        if len(chosen) >= FLEETS_PER_SLOT:
+            break
+        if entry not in chosen:
+            chosen.append(entry)
+
+    return chosen
+
+
 def build_slot(slot_idx):
     """Build FLEETS_PER_SLOT fleets instantly from the pre-fetched route cache.
     Falls back to live OSRM only if the cache is not yet ready or short.
@@ -263,19 +300,14 @@ def build_slot(slot_idx):
     fleets  = []
     base_id = slot_idx * FLEETS_PER_SLOT
 
-    # Wait at most 8 s for the cache (fires early once 10 routes are ready)
-    _cache_ready.wait(timeout=8)
+    # Wait at most 4 s for the cache, then fall back to whatever is ready.
+    _cache_ready.wait(timeout=4)
 
-    with _cache_lock:
-        # Pull the next FLEETS_PER_SLOT entries from cache (rotate round-robin)
-        start = slot_idx * FLEETS_PER_SLOT
-        entries = []
-        for k in range(FLEETS_PER_SLOT * 3):  # look ahead for spares
-            idx = (start + k) % max(len(_route_cache), 1)
-            if idx < len(_route_cache):
-                entries.append(_route_cache[idx])
-            if len(entries) >= FLEETS_PER_SLOT * 2:
-                break
+    entries = _select_slot_route_entries(slot_idx)
+    if not entries:
+        with _cache_lock:
+            entries = list(_route_cache)
+        random.shuffle(entries)
 
     # Build fleet records — wave stagger: each fleet delayed 0.25s within slot
     used = 0

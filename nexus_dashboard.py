@@ -73,24 +73,33 @@ def fetch_one_route(task):
     path, dist, eta = router.calculate_traffic_route(start, dest)
     return idx, path, dist, eta
 
+
+def _build_route_candidates(num_fleets):
+    """Create a diverse list of origin/destination pairs for deploy."""
+    candidates = []
+    zone_order = MUMBAI_ZONES.copy()
+    random.shuffle(zone_order)
+
+    while len(candidates) < num_fleets * 2:
+        for sz in zone_order:
+            dz = random.choice([z for z in MUMBAI_ZONES if z["name"] != sz["name"]])
+            s = (sz["coords"][0] + random.uniform(-0.015, 0.015),
+                 sz["coords"][1] + random.uniform(-0.015, 0.015))
+            d = (dz["coords"][0] + random.uniform(-0.015, 0.015),
+                 dz["coords"][1] + random.uniform(-0.015, 0.015))
+            candidates.append((sz, dz, s, d))
+            if len(candidates) >= num_fleets * 2:
+                break
+        random.shuffle(zone_order)
+    return candidates
+
+
 def deploy_swarm(num_fleets=NUM_FLEETS):
     """
     Build candidate list first (no API), then fetch all routes in parallel.
     This cuts deploy time from ~50s sequential → ~5-8s parallel.
     """
-    candidates = []
-    attempts   = 0
-    while len(candidates) < num_fleets * 2 and attempts < 300:
-        attempts += 1
-        sz = random.choice(MUMBAI_ZONES)
-        dz = random.choice(MUMBAI_ZONES)
-        if sz["name"] == dz["name"]:
-            continue
-        s = (sz["coords"][0] + random.uniform(-0.015, 0.015),
-             sz["coords"][1] + random.uniform(-0.015, 0.015))
-        d = (dz["coords"][0] + random.uniform(-0.015, 0.015),
-             dz["coords"][1] + random.uniform(-0.015, 0.015))
-        candidates.append((sz, dz, s, d))
+    candidates = _build_route_candidates(num_fleets)
 
     # Parallel API calls
     tasks   = [(i, c[2], c[3]) for i, c in enumerate(candidates)]
