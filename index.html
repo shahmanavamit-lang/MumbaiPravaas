@@ -1,57 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Neural Nexus — Mumbai Command Center</title>
+  <title>MumbaiPravaas — Mumbai Command Center</title>
   <meta name="description" content="Real-time 50-fleet MARL logistics command center for Mumbai." />
 
   <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
   <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Orbitron:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Orbitron:wght@400;600;700;800;900&display=swap"
+    rel="stylesheet" />
 
   <style>
     /* ── RESET ── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     :root {
       /* ── Electric accent palette ── */
-      --cyan:        #00D4FF;   /* electric cyan */
-      --cyan-dim:    rgba(0,212,255,0.14);
-      --cyan-glow:   rgba(0,212,255,0.35);
-      --magenta:     #A855F7;   /* vivid violet */
-      --mag-dim:     rgba(168,85,247,0.12);
-      --blue:        #3B82F6;
+      --cyan: #00D4FF;
+      /* electric cyan */
+      --cyan-dim: rgba(0, 212, 255, 0.14);
+      --cyan-glow: rgba(0, 212, 255, 0.35);
+      --magenta: #A855F7;
+      /* vivid violet */
+      --mag-dim: rgba(168, 85, 247, 0.12);
+      --blue: #3B82F6;
       --blue-bright: #60A5FA;
-      --blue-dim:    rgba(59,130,246,0.14);
-      --green:       #10FFAA;   /* neon mint */
-      --orange:      #FF7849;
-      --red:         #FF4D6D;
-      --amber:       #FFB700;   /* GOD MODE */
-      --violet:      #7C3AED;
+      --blue-dim: rgba(59, 130, 246, 0.14);
+      --green: #10FFAA;
+      /* neon mint */
+      --orange: #FF7849;
+      --red: #FF4D6D;
+      --amber: #FFB700;
+      /* GOD MODE */
+      --violet: #7C3AED;
 
       /* ── Backgrounds ── */
-      --bg-void:    #04060F;
-      --bg-deep:    #080C18;
-      --bg-panel:   rgba(6,10,22,0.97);
-      --bg-card:    rgba(10,16,34,0.70);
-      --bg-card-h:  rgba(16,26,52,0.85);
+      --bg-void: #04060F;
+      --bg-deep: #080C18;
+      --bg-panel: rgba(6, 10, 22, 0.97);
+      --bg-card: rgba(10, 16, 34, 0.70);
+      --bg-card-h: rgba(16, 26, 52, 0.85);
 
       /* ── Borders ── */
-      --border:     rgba(0,212,255,0.10);
-      --border-h:   rgba(0,212,255,0.28);
-      --border-sel: rgba(0,212,255,0.60);
+      --border: rgba(0, 212, 255, 0.10);
+      --border-h: rgba(0, 212, 255, 0.28);
+      --border-sel: rgba(0, 212, 255, 0.60);
 
       /* ── Text ── */
-      --t-hi:    #EEF2FF;
-      --t-med:   #8BA3C7;
-      --t-low:   #3D5473;
-      --t-dim:   #182030;
+      --t-hi: #EEF2FF;
+      --t-med: #8BA3C7;
+      --t-low: #3D5473;
+      --t-dim: #182030;
 
-      --ease-out:     cubic-bezier(0.16, 1, 0.3, 1);
-      --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
       --t-fast: 0.12s;
-      --t-mid:  0.28s;
+      --t-mid: 0.28s;
       --t-slow: 0.5s;
 
       --r-xl: 16px;
@@ -60,8 +73,10 @@
       --r-sm: 5px;
     }
 
-    html, body {
-      width: 100%; height: 100%;
+    html,
+    body {
+      width: 100%;
+      height: 100%;
       overflow: hidden;
       background: var(--bg-void);
       font-family: 'Inter', sans-serif;
@@ -72,7 +87,8 @@
        ANIMATED BACKGROUND NEBULA
     ═══════════════════════════════════════════ */
     .bg-canvas {
-      position: fixed; inset: 0;
+      position: fixed;
+      inset: 0;
       z-index: 0;
       pointer-events: none;
       overflow: hidden;
@@ -87,78 +103,194 @@
     }
 
     .bg-orb:nth-child(1) {
-      width: 700px; height: 500px;
-      top: -150px; left: -200px;
-      background: radial-gradient(circle, rgba(0,212,255,0.13) 0%, rgba(59,130,246,0.06) 50%, transparent 70%);
-      animation-delay: 0s; animation-duration: 14s;
+      width: 700px;
+      height: 500px;
+      top: -150px;
+      left: -200px;
+      background: radial-gradient(circle, rgba(0, 212, 255, 0.13) 0%, rgba(59, 130, 246, 0.06) 50%, transparent 70%);
+      animation-delay: 0s;
+      animation-duration: 14s;
     }
+
     .bg-orb:nth-child(2) {
-      width: 600px; height: 600px;
-      bottom: -150px; right: -120px;
-      background: radial-gradient(circle, rgba(124,58,237,0.12) 0%, rgba(168,85,247,0.05) 50%, transparent 70%);
-      animation-delay: -5s; animation-duration: 18s;
+      width: 600px;
+      height: 600px;
+      bottom: -150px;
+      right: -120px;
+      background: radial-gradient(circle, rgba(124, 58, 237, 0.12) 0%, rgba(168, 85, 247, 0.05) 50%, transparent 70%);
+      animation-delay: -5s;
+      animation-duration: 18s;
     }
+
     .bg-orb:nth-child(3) {
-      width: 400px; height: 400px;
-      top: 38%; left: 38%;
-      background: radial-gradient(circle, rgba(16,255,170,0.06) 0%, transparent 70%);
-      animation-delay: -9s; animation-duration: 22s;
+      width: 400px;
+      height: 400px;
+      top: 38%;
+      left: 38%;
+      background: radial-gradient(circle, rgba(16, 255, 170, 0.06) 0%, transparent 70%);
+      animation-delay: -9s;
+      animation-duration: 22s;
+    }
+
+    /* Mumbai Theme Elements */
+    .theme-element {
+      position: absolute;
+      font-size: 24px;
+      opacity: 0.1;
+      animation: float 10s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .theme-element.lemon {
+      top: 20%;
+      left: 10%;
+      content: '🍋';
+    }
+
+    .theme-element.chilli {
+      top: 60%;
+      right: 15%;
+      content: '🌶️';
+    }
+
+    .theme-element.vada-pav {
+      bottom: 30%;
+      left: 20%;
+      content: '🥪';
+    }
+
+    .theme-element.chilli2 {
+      top: 10%;
+      right: 5%;
+      content: '🌶️';
+    }
+
+    .theme-element.lemon2 {
+      bottom: 10%;
+      right: 25%;
+      content: '🍋';
+    }
+
+    .theme-element.pav-bhaji {
+      top: 25%;
+      left: 8%;
+      content: '🍛';
+    }
+
+    .theme-element.rickshaw {
+      top: 70%;
+      right: 10%;
+      content: '🚲';
+    }
+
+    .theme-element.temple {
+      bottom: 20%;
+      left: 15%;
+      content: '🛕';
+    }
+
+    .theme-element.train {
+      top: 15%;
+      right: 20%;
+      content: '🚆';
+    }
+
+    .theme-element.dabbawala {
+      bottom: 15%;
+      right: 30%;
+      content: '🥘';
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
     }
 
     @keyframes orbDrift {
-      0%   { transform: translate(0, 0) scale(1); }
-      50%  { transform: translate(50px, 35px) scale(1.12); }
-      100% { transform: translate(-25px, 55px) scale(0.93); }
+      0% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      50% {
+        transform: translate(50px, 35px) scale(1.12);
+      }
+
+      100% {
+        transform: translate(-25px, 55px) scale(0.93);
+      }
     }
 
     /* Grid lines background */
     .bg-grid {
-      position: fixed; inset: 0;
+      position: fixed;
+      inset: 0;
       z-index: 0;
       pointer-events: none;
       background-image:
-        linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
+        linear-gradient(rgba(0, 212, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 255, 0.04) 1px, transparent 1px);
       background-size: 60px 60px;
       mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 80%);
       animation: gridShift 20s linear infinite;
     }
+
     @keyframes gridShift {
-      0%   { background-position: 0 0; }
-      100% { background-position: 60px 60px; }
+      0% {
+        background-position: 0 0;
+      }
+
+      100% {
+        background-position: 60px 60px;
+      }
     }
 
     /* scan line sweep */
     .bg-scan {
-      position: fixed; inset: 0;
+      position: fixed;
+      inset: 0;
       z-index: 0;
       pointer-events: none;
-      background: linear-gradient(
-        to bottom,
-        transparent 0%,
-        rgba(0,212,255,0.012) 50%,
-        transparent 100%
-      );
+      background: linear-gradient(to bottom,
+          transparent 0%,
+          rgba(0, 212, 255, 0.012) 50%,
+          transparent 100%);
       background-size: 100% 200px;
       animation: scanSweep 6s linear infinite;
     }
 
     @keyframes scanSweep {
-      0%   { background-position: 0 -200px; }
-      100% { background-position: 0 100vh; }
+      0% {
+        background-position: 0 -200px;
+      }
+
+      100% {
+        background-position: 0 100vh;
+      }
     }
 
     /* ═══════════════════════════════════════════
        MAP
     ═══════════════════════════════════════════ */
-    #map { position: absolute; inset: 0; }
+    #map {
+      position: absolute;
+      inset: 0;
+    }
 
     /* ═══════════════════════════════════════════
        TOP COMMAND STRIP
     ═══════════════════════════════════════════ */
     #top-bar {
       position: fixed;
-      top: 10px; left: 10px; right: 10px;
+      top: 10px;
+      left: 10px;
+      right: 10px;
       z-index: 50;
       display: flex;
       align-items: center;
@@ -168,55 +300,79 @@
       background: rgba(4, 8, 20, 0.95);
       backdrop-filter: blur(32px);
       -webkit-backdrop-filter: blur(32px);
-      border: 1px solid rgba(0,212,255,0.14);
+      border: 1px solid rgba(0, 212, 255, 0.14);
       border-radius: var(--r-xl);
       box-shadow:
-        0 0 0 1px rgba(255,255,255,0.04) inset,
-        0 1px 0 rgba(0,212,255,0.10) inset,
-        0 8px 40px rgba(0,0,0,0.80),
-        0 0 80px rgba(0,212,255,0.06),
-        0 0 160px rgba(124,58,237,0.04);
+        0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+        0 1px 0 rgba(0, 212, 255, 0.10) inset,
+        0 8px 40px rgba(0, 0, 0, 0.80),
+        0 0 80px rgba(0, 212, 255, 0.06),
+        0 0 160px rgba(124, 58, 237, 0.04);
       animation: topBarGlow 4s ease-in-out infinite alternate;
     }
+
     @keyframes topBarGlow {
-      from { box-shadow: 0 0 0 1px rgba(255,255,255,0.04) inset, 0 1px 0 rgba(0,212,255,0.10) inset, 0 8px 40px rgba(0,0,0,0.80), 0 0 80px rgba(0,212,255,0.06), 0 0 160px rgba(124,58,237,0.04); }
-      to   { box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset, 0 1px 0 rgba(0,212,255,0.18) inset, 0 8px 40px rgba(0,0,0,0.80), 0 0 120px rgba(0,212,255,0.12), 0 0 200px rgba(124,58,237,0.08); }
+      from {
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04) inset, 0 1px 0 rgba(0, 212, 255, 0.10) inset, 0 8px 40px rgba(0, 0, 0, 0.80), 0 0 80px rgba(0, 212, 255, 0.06), 0 0 160px rgba(124, 58, 237, 0.04);
+      }
+
+      to {
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06) inset, 0 1px 0 rgba(0, 212, 255, 0.18) inset, 0 8px 40px rgba(0, 0, 0, 0.80), 0 0 120px rgba(0, 212, 255, 0.12), 0 0 200px rgba(124, 58, 237, 0.08);
+      }
     }
 
     /* Brand */
     .brand {
-      display: flex; align-items: center; gap: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
       flex-shrink: 0;
     }
 
     .brand-hex {
       position: relative;
-      width: 40px; height: 40px;
-      display: flex; align-items: center; justify-content: center;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
     }
 
     .brand-hex::before {
       content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(96,165,250,0.14), rgba(37,99,235,0.07));
-      border: 1px solid rgba(96,165,250,0.22);
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(96, 165, 250, 0.14), rgba(37, 99, 235, 0.07));
+      border: 1px solid rgba(96, 165, 250, 0.22);
       border-radius: 10px;
       animation: hexPulse 3s ease-in-out infinite;
     }
 
     @keyframes hexPulse {
-      0%,100% { box-shadow: 0 0 8px rgba(96,165,250,0.15), inset 0 0 8px rgba(96,165,250,0.04); }
-      50%      { box-shadow: 0 0 24px rgba(96,165,250,0.35), 0 0 48px rgba(96,165,250,0.10), inset 0 0 16px rgba(96,165,250,0.08); }
+
+      0%,
+      100% {
+        box-shadow: 0 0 8px rgba(96, 165, 250, 0.15), inset 0 0 8px rgba(96, 165, 250, 0.04);
+      }
+
+      50% {
+        box-shadow: 0 0 24px rgba(96, 165, 250, 0.35), 0 0 48px rgba(96, 165, 250, 0.10), inset 0 0 16px rgba(96, 165, 250, 0.08);
+      }
     }
 
     .brand-icon-svg {
-      position: relative; z-index: 1;
+      position: relative;
+      z-index: 1;
       font-size: 20px;
-      filter: drop-shadow(0 0 6px rgba(96,165,250,0.6));
+      filter: drop-shadow(0 0 6px rgba(96, 165, 250, 0.6));
     }
 
-    .brand-text { display: flex; flex-direction: column; gap: 0; }
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
 
     .brand-title {
       font-family: 'Orbitron', sans-serif;
@@ -241,14 +397,16 @@
     }
 
     .v-divider {
-      width: 1px; height: 32px;
+      width: 1px;
+      height: 32px;
       background: linear-gradient(to bottom, transparent, var(--border), transparent);
       flex-shrink: 0;
     }
 
     /* Stat cards in top bar */
     .stats-row {
-      display: flex; gap: 6px;
+      display: flex;
+      gap: 6px;
       flex: 1;
     }
 
@@ -274,20 +432,25 @@
 
     .stat-chip::before {
       content: '';
-      position: absolute; top: 0; left: 10%; right: 10%;
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
       height: 1px;
-      background: linear-gradient(to right, transparent, rgba(255,255,255,0.15), transparent);
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.15), transparent);
     }
 
     .stat-chip:hover {
       border-color: var(--border-h);
       transform: translateY(-2px);
-      box-shadow: 0 0 20px rgba(0,245,255,0.1), 0 8px 24px rgba(0,0,0,0.4);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.1), 0 8px 24px rgba(0, 0, 0, 0.4);
     }
 
     .stat-chip-accent {
       position: absolute;
-      left: 0; top: 15%; bottom: 15%;
+      left: 0;
+      top: 15%;
+      bottom: 15%;
       width: 2px;
       border-radius: 99px;
     }
@@ -309,11 +472,24 @@
       font-weight: 700;
     }
 
-    #s-active   { color: var(--green);       text-shadow: 0 0 16px rgba(52,211,153,0.45); }
-    #s-delivered { color: var(--blue-bright); text-shadow: 0 0 16px rgba(147,197,253,0.35); }
-    #s-god       { color: var(--amber);       text-shadow: 0 0 20px rgba(245,158,11,0.55); }
+    #s-active {
+      color: var(--green);
+      text-shadow: 0 0 16px rgba(52, 211, 153, 0.45);
+    }
 
-    .spacer { flex: 1; }
+    #s-delivered {
+      color: var(--blue-bright);
+      text-shadow: 0 0 16px rgba(147, 197, 253, 0.35);
+    }
+
+    #s-god {
+      color: var(--amber);
+      text-shadow: 0 0 20px rgba(245, 158, 11, 0.55);
+    }
+
+    .spacer {
+      flex: 1;
+    }
 
 
 
@@ -322,7 +498,7 @@
       position: relative;
       overflow: hidden;
       background: linear-gradient(135deg, #0c1830 0%, #081020 50%, #0a1428 100%);
-      border: 1px solid rgba(96,165,250,0.30);
+      border: 1px solid rgba(96, 165, 250, 0.30);
       border-radius: var(--r-lg);
       color: var(--cyan);
       font-family: 'Orbitron', sans-serif;
@@ -340,45 +516,57 @@
 
     #deploy-btn::before {
       content: '';
-      position: absolute; top: 0; left: -100%;
-      width: 100%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(96,165,250,0.10), transparent);
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.10), transparent);
       transition: left 0.6s ease;
     }
 
     #deploy-btn::after {
       content: '';
-      position: absolute; inset: 0;
+      position: absolute;
+      inset: 0;
       border-radius: var(--r-lg);
-      box-shadow: inset 0 1px 0 rgba(96,165,250,0.12);
+      box-shadow: inset 0 1px 0 rgba(96, 165, 250, 0.12);
     }
 
     #deploy-btn:hover:not(:disabled) {
       background: linear-gradient(135deg, #122060 0%, #0e1a50 50%, #142260 100%);
       border-color: var(--cyan);
       box-shadow:
-        0 0 20px rgba(96,165,250,0.25),
-        0 0 60px rgba(96,165,250,0.08),
-        0 0 100px rgba(37,99,235,0.06);
+        0 0 20px rgba(96, 165, 250, 0.25),
+        0 0 60px rgba(96, 165, 250, 0.08),
+        0 0 100px rgba(37, 99, 235, 0.06);
       transform: translateY(-2px);
       color: var(--t-hi);
     }
 
-    #deploy-btn:hover:not(:disabled)::before { left: 100%; }
+    #deploy-btn:hover:not(:disabled)::before {
+      left: 100%;
+    }
 
     #deploy-btn:active:not(:disabled) {
       transform: scale(0.97) translateY(0);
-      box-shadow: 0 0 12px rgba(0,245,255,0.2);
+      box-shadow: 0 0 12px rgba(0, 245, 255, 0.2);
     }
 
-    #deploy-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    #deploy-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
 
     /* ═══════════════════════════════════════════
        MAIN LAYOUT
     ═══════════════════════════════════════════ */
     #layout {
       position: fixed;
-      top: 78px; left: 10px; right: 10px; bottom: 10px;
+      top: 78px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
       display: flex;
       gap: 8px;
       z-index: 10;
@@ -393,22 +581,23 @@
       position: relative;
       border-radius: var(--r-xl);
       overflow: hidden;
-      border: 1px solid rgba(96,165,250,0.08);
+      border: 1px solid rgba(96, 165, 250, 0.08);
       box-shadow:
-        0 0 0 1px rgba(255,255,255,0.02) inset,
-        0 0 60px rgba(37,99,235,0.06),
-        0 0 120px rgba(96,165,250,0.03);
+        0 0 0 1px rgba(255, 255, 255, 0.02) inset,
+        0 0 60px rgba(37, 99, 235, 0.06),
+        0 0 120px rgba(96, 165, 250, 0.03);
     }
 
     /* Vignette overlays on map */
     #map-wrap::before {
       content: '';
-      position: absolute; inset: 0;
+      position: absolute;
+      inset: 0;
       background:
-        linear-gradient(to right, rgba(3,8,20,0.45) 0%, transparent 18%),
-        linear-gradient(to left,  rgba(3,8,20,0.45) 0%, transparent 18%),
-        linear-gradient(to bottom,rgba(3,8,20,0.25) 0%, transparent 14%),
-        linear-gradient(to top,   rgba(3,8,20,0.25) 0%, transparent 14%);
+        linear-gradient(to right, rgba(3, 8, 20, 0.45) 0%, transparent 18%),
+        linear-gradient(to left, rgba(3, 8, 20, 0.45) 0%, transparent 18%),
+        linear-gradient(to bottom, rgba(3, 8, 20, 0.25) 0%, transparent 14%),
+        linear-gradient(to top, rgba(3, 8, 20, 0.25) 0%, transparent 14%);
       pointer-events: none;
       z-index: 2;
     }
@@ -416,9 +605,10 @@
     /* Glow border on map */
     #map-wrap::after {
       content: '';
-      position: absolute; inset: 0;
+      position: absolute;
+      inset: 0;
       border-radius: var(--r-xl);
-      box-shadow: inset 0 0 0 1px rgba(96,165,250,0.04);
+      box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.04);
       pointer-events: none;
       z-index: 3;
     }
@@ -440,9 +630,12 @@
 
     .panel::before {
       content: '';
-      position: absolute; top: 0; left: 0; right: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
       height: 1px;
-      background: linear-gradient(to right, transparent, rgba(0,245,255,0.20), rgba(41,121,255,0.15), transparent);
+      background: linear-gradient(to right, transparent, rgba(0, 245, 255, 0.20), rgba(41, 121, 255, 0.15), transparent);
       z-index: 1;
     }
 
@@ -457,8 +650,15 @@
     }
 
     @keyframes panelSlideLeft {
-      from { opacity: 0; transform: translateX(-20px); }
-      to   { opacity: 1; transform: translateX(0); }
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
 
     .sb-header {
@@ -475,18 +675,22 @@
     }
 
     .sb-title-group {
-      display: flex; align-items: center; gap: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .live-dot {
       position: relative;
-      width: 8px; height: 8px;
+      width: 8px;
+      height: 8px;
       flex-shrink: 0;
     }
 
     .live-dot::before {
       content: '';
-      position: absolute; inset: 0;
+      position: absolute;
+      inset: 0;
       border-radius: 50%;
       background: var(--green);
       box-shadow: 0 0 6px var(--green);
@@ -497,13 +701,22 @@
       position: absolute;
       inset: -4px;
       border-radius: 50%;
-      border: 1.5px solid rgba(0,255,136,0.4);
+      border: 1.5px solid rgba(0, 255, 136, 0.4);
       animation: livePulse 2s ease-in-out infinite;
     }
 
     @keyframes livePulse {
-      0%,100% { transform: scale(1); opacity: 0.8; }
-      50%      { transform: scale(1.5); opacity: 0; }
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 0.8;
+      }
+
+      50% {
+        transform: scale(1.5);
+        opacity: 0;
+      }
     }
 
     .sb-title {
@@ -520,8 +733,8 @@
       font-size: 10px;
       font-weight: 600;
       color: var(--cyan);
-      background: rgba(0,245,255,0.08);
-      border: 1px solid rgba(0,245,255,0.2);
+      background: rgba(0, 245, 255, 0.08);
+      border: 1px solid rgba(0, 245, 255, 0.2);
       border-radius: 99px;
       padding: 2px 9px;
     }
@@ -533,7 +746,7 @@
 
     .sb-search input {
       width: 100%;
-      background: rgba(6,16,40,0.6);
+      background: rgba(6, 16, 40, 0.6);
       border: 1px solid var(--border);
       border-radius: var(--r-md);
       color: var(--t-med);
@@ -545,11 +758,13 @@
     }
 
     .sb-search input:focus {
-      border-color: rgba(96,165,250,0.30);
-      box-shadow: 0 0 0 2px rgba(96,165,250,0.06), 0 0 12px rgba(96,165,250,0.04);
+      border-color: rgba(96, 165, 250, 0.30);
+      box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.06), 0 0 12px rgba(96, 165, 250, 0.04);
     }
 
-    .sb-search input::placeholder { color: var(--t-dim); }
+    .sb-search input::placeholder {
+      color: var(--t-dim);
+    }
 
     .sb-divider {
       height: 1px;
@@ -563,13 +778,16 @@
       overflow-y: auto;
       padding: 6px 8px;
       scrollbar-width: thin;
-      scrollbar-color: rgba(0,245,255,0.15) transparent;
+      scrollbar-color: rgba(0, 245, 255, 0.15) transparent;
       scroll-behavior: smooth;
     }
 
-    #fleet-list::-webkit-scrollbar { width: 3px; }
+    #fleet-list::-webkit-scrollbar {
+      width: 3px;
+    }
+
     #fleet-list::-webkit-scrollbar-thumb {
-      background: rgba(0,245,255,0.15);
+      background: rgba(0, 245, 255, 0.15);
       border-radius: 99px;
     }
 
@@ -582,8 +800,8 @@
       margin-bottom: 4px;
       cursor: pointer;
       border-radius: var(--r-lg);
-      border: 1px solid rgba(255,255,255,0.04);
-      background: rgba(6,14,35,0.5);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(6, 14, 35, 0.5);
       position: relative;
       overflow: hidden;
       transition:
@@ -595,8 +813,9 @@
 
     .fleet-item::before {
       content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(120deg, rgba(0,245,255,0) 0%, rgba(0,245,255,0.03) 100%);
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(0, 245, 255, 0) 0%, rgba(0, 245, 255, 0.03) 100%);
       opacity: 0;
       transition: opacity var(--t-mid) ease;
       border-radius: var(--r-lg);
@@ -604,45 +823,57 @@
 
     .fleet-item:hover {
       background: var(--bg-card-h);
-      border-color: rgba(0,245,255,0.18);
+      border-color: rgba(0, 245, 255, 0.18);
       transform: translateY(-1px) scale(1.01);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 12px rgba(0,245,255,0.05);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 12px rgba(0, 245, 255, 0.05);
     }
 
-    .fleet-item:hover::before { opacity: 1; }
+    .fleet-item:hover::before {
+      opacity: 1;
+    }
 
     .fleet-item.selected {
-      background: rgba(0,245,255,0.055);
-      border-color: rgba(0,245,255,0.55);
+      background: rgba(0, 245, 255, 0.055);
+      border-color: rgba(0, 245, 255, 0.55);
       box-shadow:
-        0 0 0 1px rgba(0,245,255,0.15) inset,
-        0 0 20px rgba(0,245,255,0.08),
-        0 4px 16px rgba(0,0,0,0.3);
+        0 0 0 1px rgba(0, 245, 255, 0.15) inset,
+        0 0 20px rgba(0, 245, 255, 0.08),
+        0 4px 16px rgba(0, 0, 0, 0.3);
       transform: translateY(-1px);
     }
 
-    .fleet-item.selected::before { opacity: 1; }
+    .fleet-item.selected::before {
+      opacity: 1;
+    }
 
     .fi-indicator {
-      position: absolute; left: 0; top: 18%; bottom: 18%;
+      position: absolute;
+      left: 0;
+      top: 18%;
+      bottom: 18%;
       width: 3px;
       border-radius: 99px;
       opacity: 0;
       transition: opacity var(--t-mid) ease;
     }
 
-    .fleet-item.selected .fi-indicator { opacity: 1; }
+    .fleet-item.selected .fi-indicator {
+      opacity: 1;
+    }
 
     .fi-dot-wrap {
       flex-shrink: 0;
       position: relative;
-      width: 12px; height: 12px;
+      width: 12px;
+      height: 12px;
     }
 
     .fi-dot {
-      width: 12px; height: 12px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
-      position: absolute; inset: 0;
+      position: absolute;
+      inset: 0;
     }
 
     .fi-dot::after {
@@ -657,18 +888,32 @@
     }
 
     @keyframes dotBreath {
-      0%,100% { opacity: 0.15; transform: scale(1); }
-      50%      { opacity: 0.35; transform: scale(1.3); }
+
+      0%,
+      100% {
+        opacity: 0.15;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.35;
+        transform: scale(1.3);
+      }
     }
 
-    .fi-body { flex: 1; min-width: 0; }
+    .fi-body {
+      flex: 1;
+      min-width: 0;
+    }
 
     .fi-id {
       font-size: 11px;
       font-weight: 700;
       font-family: 'JetBrains Mono', monospace;
       letter-spacing: 0.04em;
-      display: flex; align-items: center; gap: 5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
       color: var(--t-hi);
     }
 
@@ -683,7 +928,7 @@
 
     .fi-prog-wrap {
       height: 2px;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255, 255, 255, 0.05);
       border-radius: 99px;
       margin-top: 5px;
       overflow: hidden;
@@ -698,9 +943,12 @@
 
     .fi-prog::after {
       content: '';
-      position: absolute; right: 0; top: 0;
-      width: 8px; height: 100%;
-      background: rgba(255,255,255,0.7);
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 8px;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.7);
       border-radius: 99px;
       filter: blur(1px);
     }
@@ -728,7 +976,7 @@
 
     .fi-fuel.low {
       color: var(--orange);
-      text-shadow: 0 0 6px rgba(255,149,0,0.5);
+      text-shadow: 0 0 6px rgba(255, 149, 0, 0.5);
     }
 
     /* ═══════════════════════════════════════════
@@ -745,8 +993,15 @@
     }
 
     @keyframes panelSlideRight {
-      from { opacity: 0; transform: translateX(20px); }
-      to   { opacity: 1; transform: translateX(0); }
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
 
     #inspector.hidden {
@@ -793,11 +1048,12 @@
     }
 
     .insp-actions {
-      display: flex; gap: 6px;
+      display: flex;
+      gap: 6px;
     }
 
     .insp-btn {
-      background: rgba(255,255,255,0.04);
+      background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--border);
       border-radius: var(--r-md);
       color: var(--t-med);
@@ -811,25 +1067,27 @@
     }
 
     .insp-btn:hover {
-      background: rgba(96,165,250,0.06);
-      border-color: rgba(96,165,250,0.28);
+      background: rgba(96, 165, 250, 0.06);
+      border-color: rgba(96, 165, 250, 0.28);
       color: var(--cyan);
       transform: translateY(-1px);
-      box-shadow: 0 0 10px rgba(96,165,250,0.08);
+      box-shadow: 0 0 10px rgba(96, 165, 250, 0.08);
     }
 
-    .insp-btn:active { transform: scale(0.96); }
+    .insp-btn:active {
+      transform: scale(0.96);
+    }
 
     .insp-btn.close {
       color: var(--red);
-      border-color: rgba(255,51,102,0.25);
+      border-color: rgba(255, 51, 102, 0.25);
     }
 
     .insp-btn.close:hover {
-      background: rgba(255,51,102,0.1);
-      border-color: rgba(255,51,102,0.5);
+      background: rgba(255, 51, 102, 0.1);
+      border-color: rgba(255, 51, 102, 0.5);
       color: var(--red);
-      box-shadow: 0 0 12px rgba(255,51,102,0.12);
+      box-shadow: 0 0 12px rgba(255, 51, 102, 0.12);
     }
 
     .insp-divider {
@@ -844,15 +1102,18 @@
       overflow-y: auto;
       padding: 14px 14px;
       scrollbar-width: thin;
-      scrollbar-color: rgba(0,245,255,0.12) transparent;
+      scrollbar-color: rgba(0, 245, 255, 0.12) transparent;
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
 
-    #insp-body::-webkit-scrollbar { width: 3px; }
+    #insp-body::-webkit-scrollbar {
+      width: 3px;
+    }
+
     #insp-body::-webkit-scrollbar-thumb {
-      background: rgba(0,245,255,0.12);
+      background: rgba(0, 245, 255, 0.12);
       border-radius: 99px;
     }
 
@@ -872,9 +1133,12 @@
 
     .insp-status-banner::before {
       content: '';
-      position: absolute; top: 0; left: 0; right: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
       height: 1px;
-      background: linear-gradient(to right, transparent, rgba(255,255,255,0.15), transparent);
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.15), transparent);
     }
 
     /* Hero metrics row */
@@ -885,7 +1149,7 @@
     }
 
     .hero-metric {
-      background: rgba(6,14,35,0.7);
+      background: rgba(6, 14, 35, 0.7);
       border: 1px solid var(--border);
       border-radius: var(--r-lg);
       padding: 12px 8px 10px;
@@ -898,15 +1162,18 @@
 
     .hero-metric::before {
       content: '';
-      position: absolute; top: 0; left: 0; right: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
       height: 1px;
-      background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
     }
 
     .hero-metric:hover {
       border-color: var(--border-h);
       transform: translateY(-2px);
-      box-shadow: 0 0 16px rgba(0,245,255,0.08), 0 4px 16px rgba(0,0,0,0.3);
+      box-shadow: 0 0 16px rgba(0, 245, 255, 0.08), 0 4px 16px rgba(0, 0, 0, 0.3);
     }
 
     .hm-label {
@@ -933,7 +1200,7 @@
 
     /* Data block */
     .data-block {
-      background: rgba(6,14,35,0.6);
+      background: rgba(6, 14, 35, 0.6);
       border: 1px solid var(--border);
       border-radius: var(--r-lg);
       padding: 12px 14px;
@@ -943,9 +1210,12 @@
 
     .data-block::before {
       content: '';
-      position: absolute; top: 0; left: 0; right: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
       height: 1px;
-      background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.08), transparent);
     }
 
     .db-label {
@@ -988,7 +1258,7 @@
 
     .bar-track {
       height: 6px;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255, 255, 255, 0.05);
       border-radius: 99px;
       overflow: hidden;
       position: relative;
@@ -1003,9 +1273,12 @@
 
     .bar-fill::after {
       content: '';
-      position: absolute; right: 0; top: 0;
-      width: 10px; height: 100%;
-      background: rgba(255,255,255,0.6);
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 10px;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.6);
       border-radius: 99px;
       filter: blur(2px);
     }
@@ -1020,7 +1293,7 @@
 
     /* Route info */
     .route-block {
-      background: rgba(6,14,35,0.6);
+      background: rgba(6, 14, 35, 0.6);
       border: 1px solid var(--border);
       border-radius: var(--r-lg);
       padding: 12px 14px;
@@ -1033,7 +1306,8 @@
     }
 
     .route-node-dot {
-      width: 8px; height: 8px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       flex-shrink: 0;
       position: relative;
@@ -1041,14 +1315,18 @@
 
     .route-node-dot::after {
       content: '';
-      position: absolute; inset: -3px;
+      position: absolute;
+      inset: -3px;
       border-radius: 50%;
       background: inherit;
       opacity: 0.25;
       filter: blur(2px);
     }
 
-    .route-node-info { flex: 1; }
+    .route-node-info {
+      flex: 1;
+    }
+
     .route-node-sublabel {
       font-size: 7.5px;
       color: var(--t-low);
@@ -1056,6 +1334,7 @@
       letter-spacing: 0.14em;
       font-weight: 700;
     }
+
     .route-node-name {
       font-size: 12px;
       font-weight: 700;
@@ -1074,7 +1353,7 @@
     .route-line {
       width: 2px;
       height: 24px;
-      background: linear-gradient(to bottom, rgba(68,255,136,0.5), rgba(41,121,255,0.3));
+      background: linear-gradient(to bottom, rgba(68, 255, 136, 0.5), rgba(41, 121, 255, 0.3));
       border-radius: 99px;
       flex-shrink: 0;
     }
@@ -1087,7 +1366,7 @@
 
     /* Efficiency block */
     .eff-block {
-      background: rgba(6,14,35,0.6);
+      background: rgba(6, 14, 35, 0.6);
       border: 1px solid var(--border);
       border-radius: var(--r-lg);
       padding: 12px 14px;
@@ -1118,7 +1397,7 @@
     }
 
     .eff-cell {
-      background: rgba(255,255,255,0.025);
+      background: rgba(255, 255, 255, 0.025);
       border-radius: var(--r-sm);
       padding: 8px;
       text-align: center;
@@ -1152,8 +1431,8 @@
     /* Focus button */
     .focus-btn {
       width: 100%;
-      background: linear-gradient(135deg, rgba(37,99,235,0.12), rgba(96,165,250,0.06));
-      border: 1px solid rgba(37,99,235,0.30);
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(96, 165, 250, 0.06));
+      border: 1px solid rgba(37, 99, 235, 0.30);
       border-radius: var(--r-lg);
       color: var(--blue-bright);
       font-family: 'Orbitron', sans-serif;
@@ -1170,28 +1449,40 @@
 
     .focus-btn::before {
       content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(to right, transparent, rgba(0,245,255,0.06), transparent);
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, transparent, rgba(0, 245, 255, 0.06), transparent);
       opacity: 0;
       transition: opacity var(--t-mid);
     }
 
     .focus-btn:hover {
-      background: linear-gradient(135deg, rgba(37,99,235,0.22), rgba(96,165,250,0.10));
-      border-color: rgba(96,165,250,0.45);
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.22), rgba(96, 165, 250, 0.10));
+      border-color: rgba(96, 165, 250, 0.45);
       color: var(--cyan);
-      box-shadow: 0 0 20px rgba(96,165,250,0.10), 0 0 48px rgba(37,99,235,0.06);
+      box-shadow: 0 0 20px rgba(96, 165, 250, 0.10), 0 0 48px rgba(37, 99, 235, 0.06);
       transform: translateY(-2px);
     }
 
-    .focus-btn:hover::before { opacity: 1; }
+    .focus-btn:hover::before {
+      opacity: 1;
+    }
 
-    .focus-btn:active { transform: scale(0.97); }
+    .focus-btn:active {
+      transform: scale(0.97);
+    }
 
     /* Inspector entrance animation */
     @keyframes inspEnter {
-      from { opacity: 0; transform: translateX(20px) scale(0.97); }
-      to   { opacity: 1; transform: translateX(0) scale(1); }
+      from {
+        opacity: 0;
+        transform: translateX(20px) scale(0.97);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
     }
 
     .insp-animate-in {
@@ -1203,7 +1494,8 @@
     ═══════════════════════════════════════════ */
     #notif-stack {
       position: absolute;
-      top: 12px; right: 12px;
+      top: 12px;
+      right: 12px;
       width: 290px;
       z-index: 20;
       display: flex;
@@ -1213,7 +1505,7 @@
     }
 
     .notif {
-      background: rgba(3,8,22,0.97);
+      background: rgba(3, 8, 22, 0.97);
       backdrop-filter: blur(24px);
       border-radius: var(--r-lg);
       padding: 10px 14px;
@@ -1225,25 +1517,315 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 0, 0, 0.3);
     }
 
-    .notif.n-critical { border-left-color: var(--cyan);    color: var(--cyan); }
-    .notif.n-warn     { border-left-color: var(--orange);  color: var(--orange); }
-    .notif.n-info     { border-left-color: var(--green);   color: var(--green); }
-    .notif.n-dim      { border-left-color: var(--blue-bright); color: var(--t-low); }
-
-    @keyframes notifIn  {
-      from { opacity:0; transform: translateX(24px) scale(0.96); }
-      to   { opacity:1; transform: none; }
+    .notif.n-critical {
+      border-left-color: var(--cyan);
+      color: var(--cyan);
     }
+
+    .notif.n-warn {
+      border-left-color: var(--orange);
+      color: var(--orange);
+    }
+
+    .notif.n-info {
+      border-left-color: var(--green);
+      color: var(--green);
+    }
+
+    .notif.n-dim {
+      border-left-color: var(--blue-bright);
+      color: var(--t-low);
+    }
+
+    @keyframes notifIn {
+      from {
+        opacity: 0;
+        transform: translateX(24px) scale(0.96);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
     @keyframes notifOut {
-      from { opacity:1; transform: none; }
-      to   { opacity:0; transform: translateX(24px) scale(0.96); }
+      from {
+        opacity: 1;
+        transform: none;
+      }
+
+      to {
+        opacity: 0;
+        transform: translateX(24px) scale(0.96);
+      }
     }
+
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(3px); }
-      to   { opacity: 1; transform: none; }
+      from {
+        opacity: 0;
+        transform: translateY(3px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    /* ═══════════════════════════════════════════
+       CUSTOM ROUTE PANEL
+    ═══════════════════════════════════════════ */
+    #custom-route-panel {
+      position: fixed;
+      top: 78px;
+      right: 10px;
+      width: 300px;
+      z-index: 200;
+      background: rgba(4, 8, 22, 0.98);
+      backdrop-filter: blur(32px);
+      -webkit-backdrop-filter: blur(32px);
+      border: 1px solid rgba(0, 212, 255, 0.25);
+      border-radius: var(--r-xl);
+      padding: 18px 18px 16px;
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+        0 20px 60px rgba(0, 0, 0, 0.80),
+        0 0 80px rgba(0, 212, 255, 0.10);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: opacity 0.35s ease, transform 0.35s var(--ease-spring);
+    }
+
+    #custom-route-panel.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-12px) scale(0.97);
+    }
+
+    .crp-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: var(--cyan);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .crp-subtitle {
+      font-size: 10px;
+      color: var(--t-low);
+      line-height: 1.6;
+    }
+
+    .crp-field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .crp-label {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--t-low);
+      font-weight: 700;
+    }
+
+    .crp-input {
+      width: 100%;
+      background: rgba(6, 16, 40, 0.7);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      color: var(--t-hi);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .crp-input:focus {
+      border-color: rgba(0, 212, 255, 0.45);
+      box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.08), 0 0 12px rgba(0, 212, 255, 0.06);
+    }
+
+    .crp-input::placeholder {
+      color: var(--t-dim);
+    }
+
+    .crp-route-arrow {
+      text-align: center;
+      font-size: 16px;
+      color: var(--t-low);
+      line-height: 1;
+    }
+
+    #crp-dispatch-btn {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(16, 255, 170, 0.08));
+      border: 1px solid rgba(0, 212, 255, 0.35);
+      border-radius: var(--r-lg);
+      color: var(--cyan);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-out);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #crp-dispatch-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(0, 212, 255, 0.28), rgba(16, 255, 170, 0.15));
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.25);
+      transform: translateY(-1px);
+    }
+
+    #crp-dispatch-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    #crp-dispatch-btn:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+
+    .crp-status {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      text-align: center;
+      min-height: 14px;
+      letter-spacing: 0.04em;
+    }
+
+    .crp-status.ok {
+      color: var(--green);
+    }
+
+    .crp-status.err {
+      color: var(--red);
+    }
+
+    .crp-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .crp-suggest-chip {
+      font-size: 9px;
+      font-family: 'Inter', sans-serif;
+      background: rgba(0, 212, 255, 0.06);
+      border: 1px solid rgba(0, 212, 255, 0.18);
+      border-radius: 99px;
+      padding: 2px 8px;
+      color: var(--t-low);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .crp-suggest-chip:hover {
+      background: rgba(0, 212, 255, 0.14);
+      color: var(--cyan);
+      border-color: rgba(0, 212, 255, 0.4);
+    }
+
+    /* Custom route button in top bar */
+    #custom-route-btn {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(124, 58, 237, 0.07));
+      border: 1px solid rgba(168, 85, 247, 0.30);
+      border-radius: var(--r-lg);
+      color: var(--magenta);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 0 16px;
+      height: 38px;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-out);
+      white-space: nowrap;
+      flex-shrink: 0;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    #custom-route-btn:hover {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(124, 58, 237, 0.14));
+      border-color: var(--magenta);
+      box-shadow: 0 0 16px rgba(168, 85, 247, 0.25);
+      transform: translateY(-1px);
+    }
+
+    #custom-route-btn.active {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.28), rgba(124, 58, 237, 0.18));
+      border-color: var(--magenta);
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.35);
+    }
+
+    /* ── Reset All button ── */
+    #reset-btn {
+      /* shown always */
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #1a0810 0%, #100608 50%, #140a0a 100%);
+      border: 1px solid rgba(255, 77, 109, 0.30);
+      border-radius: var(--r-lg);
+      color: var(--red);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 0 18px;
+      height: 38px;
+      cursor: pointer;
+      transition: all var(--t-mid) var(--ease-out);
+      white-space: nowrap;
+      flex-shrink: 0;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    #reset-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 77, 109, 0.10), transparent);
+      transition: left 0.6s ease;
+    }
+
+    #reset-btn:hover {
+      background: linear-gradient(135deg, #3a0e18 0%, #280a10 50%, #320c12 100%);
+      border-color: var(--red);
+      box-shadow: 0 0 20px rgba(255, 77, 109, 0.30), 0 0 60px rgba(255, 77, 109, 0.08);
+      transform: translateY(-2px);
+      color: #fff;
+    }
+
+    #reset-btn:hover::before {
+      left: 100%;
+    }
+
+    #reset-btn:active {
+      transform: scale(0.97);
+    }
+
+    #reset-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
     }
 
     /* ═══════════════════════════════════════════
@@ -1259,14 +1841,26 @@
       padding: 24px;
       text-align: center;
     }
+
     #pre-deploy-state .pd-icon {
       font-size: 40px;
       animation: pdIconPulse 2.5s ease-in-out infinite;
     }
+
     @keyframes pdIconPulse {
-      0%,100% { transform: scale(1); filter: brightness(1); }
-      50% { transform: scale(1.12); filter: brightness(1.4) drop-shadow(0 0 12px rgba(96,165,250,0.6)); }
+
+      0%,
+      100% {
+        transform: scale(1);
+        filter: brightness(1);
+      }
+
+      50% {
+        transform: scale(1.12);
+        filter: brightness(1.4) drop-shadow(0 0 12px rgba(96, 165, 250, 0.6));
+      }
     }
+
     #pre-deploy-state .pd-title {
       font-family: 'Orbitron', sans-serif;
       font-size: 10px;
@@ -1275,6 +1869,7 @@
       color: var(--t-low);
       text-transform: uppercase;
     }
+
     #pre-deploy-state .pd-hint {
       font-size: 10px;
       color: var(--t-dim);
@@ -1285,7 +1880,9 @@
        FULL-PAGE DEPLOY ANIMATION OVERLAY
     ═══════════════════════════════════════════ */
     #loading-overlay {
-      position: fixed; inset: 0; z-index: 100;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
       background: rgba(3, 8, 20, 0.96);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
@@ -1297,101 +1894,196 @@
       transition: opacity 0.7s ease;
       overflow: hidden;
     }
-    #loading-overlay.hidden { opacity: 0; pointer-events: none; }
+
+    #loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
 
     /* Animated radar rings */
     .deploy-radar {
       position: absolute;
       border-radius: 50%;
-      border: 1px solid rgba(0,212,255,0.22);
+      border: 1px solid rgba(0, 212, 255, 0.22);
       animation: radarExpand 3s ease-out infinite;
     }
-    .deploy-radar:nth-child(1) { width: 200px;  height: 200px;  animation-delay: 0s;   border-color: rgba(0,212,255,0.35); }
-    .deploy-radar:nth-child(2) { width: 380px;  height: 380px;  animation-delay: 0.75s; border-color: rgba(0,212,255,0.22); }
-    .deploy-radar:nth-child(3) { width: 600px;  height: 600px;  animation-delay: 1.5s;  border-color: rgba(124,58,237,0.18); }
-    .deploy-radar:nth-child(4) { width: 900px;  height: 900px;  animation-delay: 2.25s; border-color: rgba(0,212,255,0.08); }
+
+    .deploy-radar:nth-child(1) {
+      width: 200px;
+      height: 200px;
+      animation-delay: 0s;
+      border-color: rgba(0, 212, 255, 0.35);
+    }
+
+    .deploy-radar:nth-child(2) {
+      width: 380px;
+      height: 380px;
+      animation-delay: 0.75s;
+      border-color: rgba(0, 212, 255, 0.22);
+    }
+
+    .deploy-radar:nth-child(3) {
+      width: 600px;
+      height: 600px;
+      animation-delay: 1.5s;
+      border-color: rgba(124, 58, 237, 0.18);
+    }
+
+    .deploy-radar:nth-child(4) {
+      width: 900px;
+      height: 900px;
+      animation-delay: 2.25s;
+      border-color: rgba(0, 212, 255, 0.08);
+    }
+
     @keyframes radarExpand {
-      0%   { opacity: 1;   transform: scale(0.15); }
-      70%  { opacity: 0.4; }
-      100% { opacity: 0;   transform: scale(1); }
+      0% {
+        opacity: 1;
+        transform: scale(0.15);
+      }
+
+      70% {
+        opacity: 0.4;
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(1);
+      }
     }
 
     /* Radar conic sweep */
     .deploy-sweep {
       position: absolute;
-      top: 50%; left: 50%;
+      top: 50%;
+      left: 50%;
       transform: translate(-50%, -50%);
-      width: 800px; height: 800px;
-      background: conic-gradient(
-        from 0deg,
-        transparent 0deg,
-        rgba(0,212,255,0.18) 6deg,
-        rgba(0,212,255,0.08) 18deg,
-        transparent 35deg
-      );
+      width: 800px;
+      height: 800px;
+      background: conic-gradient(from 0deg,
+          transparent 0deg,
+          rgba(0, 212, 255, 0.18) 6deg,
+          rgba(0, 212, 255, 0.08) 18deg,
+          transparent 35deg);
       animation: sweepRotate 2.4s linear infinite;
       border-radius: 50%;
     }
-    @keyframes sweepRotate { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+    @keyframes sweepRotate {
+      to {
+        transform: translate(-50%, -50%) rotate(360deg);
+      }
+    }
 
     /* Grid overlay */
     .deploy-grid {
-      position: absolute; inset: 0;
+      position: absolute;
+      inset: 0;
       background-image:
-        linear-gradient(rgba(0,212,255,0.07) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,212,255,0.07) 1px, transparent 1px);
+        linear-gradient(rgba(0, 212, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 255, 0.07) 1px, transparent 1px);
       background-size: 44px 44px;
       animation: gridFadeIn 0.8s ease-in both, gridShiftDeploy 15s linear infinite;
     }
-    @keyframes gridFadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes gridShiftDeploy { to { background-position: 44px 44px; } }
+
+    @keyframes gridFadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes gridShiftDeploy {
+      to {
+        background-position: 44px 44px;
+      }
+    }
 
     /* Hex node dots */
     .deploy-node {
       position: absolute;
-      width: 7px; height: 7px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: var(--cyan);
-      box-shadow: 0 0 12px var(--cyan), 0 0 24px rgba(0,212,255,0.5);
+      box-shadow: 0 0 12px var(--cyan), 0 0 24px rgba(0, 212, 255, 0.5);
       animation: nodeFlicker 1.4s ease-in-out infinite alternate;
     }
+
     .deploy-node.violet {
       background: var(--magenta);
-      box-shadow: 0 0 12px var(--magenta), 0 0 24px rgba(168,85,247,0.5);
+      box-shadow: 0 0 12px var(--magenta), 0 0 24px rgba(168, 85, 247, 0.5);
     }
+
     .deploy-node.green {
       background: var(--green);
-      box-shadow: 0 0 12px var(--green), 0 0 24px rgba(16,255,170,0.4);
+      box-shadow: 0 0 12px var(--green), 0 0 24px rgba(16, 255, 170, 0.4);
     }
+
     @keyframes nodeFlicker {
-      0%   { opacity: 0.15; transform: scale(0.5); }
-      100% { opacity: 1;    transform: scale(1.4); }
+      0% {
+        opacity: 0.15;
+        transform: scale(0.5);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1.4);
+      }
     }
 
     /* Central glowing orb */
     .deploy-orb {
       position: relative;
-      width: 120px; height: 120px;
+      width: 120px;
+      height: 120px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,212,255,0.30) 0%, rgba(59,130,246,0.12) 50%, transparent 70%);
-      border: 1.5px solid rgba(0,212,255,0.60);
-      display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(circle, rgba(0, 212, 255, 0.30) 0%, rgba(59, 130, 246, 0.12) 50%, transparent 70%);
+      border: 1.5px solid rgba(0, 212, 255, 0.60);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       animation: orbBreath 1.8s ease-in-out infinite;
       box-shadow:
-        0 0 40px rgba(0,212,255,0.50),
-        0 0 100px rgba(59,130,246,0.25),
-        inset 0 0 40px rgba(0,212,255,0.15);
-      z-index: 5; flex-shrink: 0;
+        0 0 40px rgba(0, 212, 255, 0.50),
+        0 0 100px rgba(59, 130, 246, 0.25),
+        inset 0 0 40px rgba(0, 212, 255, 0.15);
+      z-index: 5;
+      flex-shrink: 0;
     }
+
     @keyframes orbBreath {
-      0%,100% { box-shadow: 0 0 40px rgba(0,212,255,0.50), 0 0 100px rgba(59,130,246,0.25), inset 0 0 40px rgba(0,212,255,0.15); }
-      50%     { box-shadow: 0 0 80px rgba(0,212,255,0.90), 0 0 180px rgba(59,130,246,0.50), inset 0 0 60px rgba(0,212,255,0.30); }
+
+      0%,
+      100% {
+        box-shadow: 0 0 40px rgba(0, 212, 255, 0.50), 0 0 100px rgba(59, 130, 246, 0.25), inset 0 0 40px rgba(0, 212, 255, 0.15);
+      }
+
+      50% {
+        box-shadow: 0 0 80px rgba(0, 212, 255, 0.90), 0 0 180px rgba(59, 130, 246, 0.50), inset 0 0 60px rgba(0, 212, 255, 0.30);
+      }
     }
-    .deploy-orb-icon { font-size: 48px; animation: orbIconSpin 10s linear infinite; }
+
+    .deploy-orb-icon {
+      font-size: 48px;
+      animation: orbIconSpin 10s linear infinite;
+    }
+
     @keyframes orbIconSpin {
-      0%   { transform: rotate(0deg) scale(1); }
-      50%  { transform: rotate(180deg) scale(1.08); }
-      100% { transform: rotate(360deg) scale(1); }
+      0% {
+        transform: rotate(0deg) scale(1);
+      }
+
+      50% {
+        transform: rotate(180deg) scale(1.08);
+      }
+
+      100% {
+        transform: rotate(360deg) scale(1);
+      }
     }
 
     /* Orbiting fleet dots — 3 rings */
@@ -1399,31 +2091,86 @@
       position: absolute;
       border-radius: 50%;
     }
-    .deploy-orbit-ring-1 { width: 190px; height: 190px; border: 1px dashed rgba(0,212,255,0.25); animation: orbitRingSpin 3.5s linear infinite; }
-    .deploy-orbit-ring-2 { width: 280px; height: 280px; border: 1px dashed rgba(168,85,247,0.22); animation: orbitRingSpin 6s linear infinite reverse; }
-    .deploy-orbit-ring-3 { width: 360px; height: 360px; border: 1px dashed rgba(16,255,170,0.15); animation: orbitRingSpin 10s linear infinite; }
-    @keyframes orbitRingSpin { to { transform: rotate(360deg); } }
+
+    .deploy-orbit-ring-1 {
+      width: 190px;
+      height: 190px;
+      border: 1px dashed rgba(0, 212, 255, 0.25);
+      animation: orbitRingSpin 3.5s linear infinite;
+    }
+
+    .deploy-orbit-ring-2 {
+      width: 280px;
+      height: 280px;
+      border: 1px dashed rgba(168, 85, 247, 0.22);
+      animation: orbitRingSpin 6s linear infinite reverse;
+    }
+
+    .deploy-orbit-ring-3 {
+      width: 360px;
+      height: 360px;
+      border: 1px dashed rgba(16, 255, 170, 0.15);
+      animation: orbitRingSpin 10s linear infinite;
+    }
+
+    @keyframes orbitRingSpin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
     .orbit-dot {
       position: absolute;
-      width: 9px; height: 9px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
-      top: -4.5px; left: 50%; margin-left: -4.5px;
+      top: -4.5px;
+      left: 50%;
+      margin-left: -4.5px;
       background: var(--cyan);
-      box-shadow: 0 0 14px var(--cyan), 0 0 28px rgba(0,212,255,0.5);
+      box-shadow: 0 0 14px var(--cyan), 0 0 28px rgba(0, 212, 255, 0.5);
     }
-    .orbit-dot-2 { background: var(--magenta); box-shadow: 0 0 14px var(--magenta); top: 50%; left: -4.5px; margin-top: -4.5px; }
-    .orbit-dot-3 { background: var(--green);   box-shadow: 0 0 14px var(--green);   top: 100%; left: 50%; margin-left: -4.5px; margin-top: -4.5px; }
-    .orbit-dot-4 { background: var(--amber);   box-shadow: 0 0 14px var(--amber);   top: 50%; left: 100%; margin-top: -4.5px; margin-left: -4.5px; }
+
+    .orbit-dot-2 {
+      background: var(--magenta);
+      box-shadow: 0 0 14px var(--magenta);
+      top: 50%;
+      left: -4.5px;
+      margin-top: -4.5px;
+    }
+
+    .orbit-dot-3 {
+      background: var(--green);
+      box-shadow: 0 0 14px var(--green);
+      top: 100%;
+      left: 50%;
+      margin-left: -4.5px;
+      margin-top: -4.5px;
+    }
+
+    .orbit-dot-4 {
+      background: var(--amber);
+      box-shadow: 0 0 14px var(--amber);
+      top: 50%;
+      left: 100%;
+      margin-top: -4.5px;
+      margin-left: -4.5px;
+    }
 
     /* Central content */
     .deploy-content {
-      position: relative; z-index: 10;
-      display: flex; flex-direction: column;
-      align-items: center; gap: 28px;
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
     }
 
-    .deploy-title-block { text-align: center; }
+    .deploy-title-block {
+      text-align: center;
+    }
+
     .deploy-main-title {
       font-family: 'Orbitron', sans-serif;
       font-size: 32px;
@@ -1436,14 +2183,21 @@
       background-clip: text;
       animation: titleGlow 1.6s ease-in-out infinite alternate;
     }
+
     @keyframes titleGlow {
-      from { filter: brightness(1); }
-      to   { filter: brightness(1.4) drop-shadow(0 0 30px rgba(0,212,255,0.7)); }
+      from {
+        filter: brightness(1);
+      }
+
+      to {
+        filter: brightness(1.4) drop-shadow(0 0 30px rgba(0, 212, 255, 0.7));
+      }
     }
+
     .deploy-sub-title {
       font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
-      color: rgba(0,212,255,0.5);
+      color: rgba(0, 212, 255, 0.5);
       letter-spacing: 0.28em;
       text-transform: uppercase;
       margin-top: 8px;
@@ -1452,31 +2206,50 @@
     /* Progress bar */
     .deploy-progress-wrap {
       width: 360px;
-      display: flex; flex-direction: column; gap: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
+
     .deploy-prog-track {
       height: 4px;
-      background: rgba(0,212,255,0.08);
+      background: rgba(0, 212, 255, 0.08);
       border-radius: 99px;
       overflow: hidden;
       position: relative;
     }
+
     .deploy-prog-fill {
       height: 100%;
       border-radius: 99px;
       background: linear-gradient(90deg, #7C3AED, #00D4FF, #10FFAA);
       background-size: 200% 100%;
-      box-shadow: 0 0 12px rgba(0,212,255,0.8);
-      animation: progSweep 8s ease-in-out forwards, progShimmer 1.5s linear infinite;
+      box-shadow: 0 0 12px rgba(0, 212, 255, 0.8);
+      animation: progSweep 3s ease-in-out forwards, progShimmer 1.5s linear infinite;
     }
+
     @keyframes progSweep {
-      0%   { width: 2%; }
-      90%  { width: 96%; }
-      100% { width: 96%; }
+      0% {
+        width: 2%;
+      }
+
+      80% {
+        width: 94%;
+      }
+
+      100% {
+        width: 94%;
+      }
     }
+
     @keyframes progShimmer {
-      0%   { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
+      0% {
+        background-position: 200% 0;
+      }
+
+      100% {
+        background-position: -200% 0;
+      }
     }
 
     /* Status message */
@@ -1489,7 +2262,19 @@
       animation: msgFade 0.4s ease-out;
       min-height: 18px;
     }
-    @keyframes msgFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    @keyframes msgFade {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
     #loading-sub {
       font-size: 10px;
       color: var(--t-dim);
@@ -1501,19 +2286,25 @@
 
     /* Fleet counter */
     .deploy-fleet-counter {
-      display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
       max-width: 340px;
     }
+
     .fleet-pip {
-      width: 11px; height: 11px;
+      width: 11px;
+      height: 11px;
       border-radius: 3px;
-      background: rgba(0,212,255,0.06);
-      border: 1px solid rgba(0,212,255,0.18);
+      background: rgba(0, 212, 255, 0.06);
+      border: 1px solid rgba(0, 212, 255, 0.18);
       transition: all 0.3s var(--ease-spring);
     }
+
     .fleet-pip.active {
       background: var(--cyan);
-      box-shadow: 0 0 8px var(--cyan), 0 0 16px rgba(0,212,255,0.4);
+      box-shadow: 0 0 8px var(--cyan), 0 0 16px rgba(0, 212, 255, 0.4);
       border-color: var(--cyan);
       transform: scale(1.2);
     }
@@ -1522,16 +2313,18 @@
        PULSE MARKER (selected vehicle)
     ═══════════════════════════════════════════ */
     .pulse-marker {
-      width: 22px; height: 22px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
-      border: 2.5px solid rgba(255,255,255,0.85);
+      border: 2.5px solid rgba(255, 255, 255, 0.85);
       animation: pulseRing 1.8s ease-out infinite;
       position: relative;
     }
 
     .pulse-marker::before {
       content: '';
-      position: absolute; inset: -6px;
+      position: absolute;
+      inset: -6px;
       border-radius: 50%;
       background: inherit;
       opacity: 0.12;
@@ -1541,44 +2334,89 @@
 
     .pulse-marker::after {
       content: '';
-      position: absolute; inset: -12px;
+      position: absolute;
+      inset: -12px;
       border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.15);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       animation: pulseOuter 1.8s ease-out infinite;
     }
 
-    .pulse-marker.god      { background: #F59E0B; box-shadow: 0 0 0 0 rgba(245,158,11,0.6); }
-    .pulse-marker.medical  { background: #F87171; box-shadow: 0 0 0 0 rgba(248,113,113,0.6); }
-    .pulse-marker.normal   { background: #60A5FA; box-shadow: 0 0 0 0 rgba(96,165,250,0.6); }
-    .pulse-marker.low_fuel { background: #FB923C; box-shadow: 0 0 0 0 rgba(251,146,60,0.6); }
+    .pulse-marker.god {
+      background: #F59E0B;
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6);
+    }
+
+    .pulse-marker.medical {
+      background: #F87171;
+      box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.6);
+    }
+
+    .pulse-marker.normal {
+      background: #60A5FA;
+      box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.6);
+    }
+
+    .pulse-marker.low_fuel {
+      background: #FB923C;
+      box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.6);
+    }
 
     @keyframes pulseRing {
-      0%   { transform: scale(1);    box-shadow: 0 0 0 0   rgba(96,165,250,0.6); }
-      70%  { transform: scale(1.18); box-shadow: 0 0 0 18px rgba(96,165,250,0); }
-      100% { transform: scale(1);    box-shadow: 0 0 0 0   rgba(96,165,250,0); }
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.6);
+      }
+
+      70% {
+        transform: scale(1.18);
+        box-shadow: 0 0 0 18px rgba(96, 165, 250, 0);
+      }
+
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(96, 165, 250, 0);
+      }
     }
 
     @keyframes pulseHalo {
-      0%,100% { transform: scale(1); opacity: 0.12; }
-      50%      { transform: scale(1.4); opacity: 0.20; }
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 0.12;
+      }
+
+      50% {
+        transform: scale(1.4);
+        opacity: 0.20;
+      }
     }
 
     @keyframes pulseOuter {
-      0%   { transform: scale(1); opacity: 0.5; }
-      100% { transform: scale(1.8); opacity: 0; }
+      0% {
+        transform: scale(1);
+        opacity: 0.5;
+      }
+
+      100% {
+        transform: scale(1.8);
+        opacity: 0;
+      }
     }
 
     /* ═══════════════════════════════════════════
        MAPLIBRE OVERRIDES
     ═══════════════════════════════════════════ */
-    .maplibregl-ctrl-attrib { font-size: 8px !important; }
+    .maplibregl-ctrl-attrib {
+      font-size: 8px !important;
+    }
 
     .maplibregl-ctrl-group {
       background: var(--bg-panel) !important;
       border: 1px solid var(--border) !important;
       backdrop-filter: blur(16px) !important;
       border-radius: var(--r-md) !important;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
     }
 
     .maplibregl-ctrl-group button {
@@ -1587,7 +2425,7 @@
     }
 
     .maplibregl-ctrl-scale {
-      background: rgba(3,8,22,0.9) !important;
+      background: rgba(3, 8, 22, 0.9) !important;
       border-color: var(--border) !important;
       color: var(--t-dim) !important;
       font-size: 9px !important;
@@ -1597,19 +2435,188 @@
        COUNTING ANIMATION
     ═══════════════════════════════════════════ */
     @keyframes countFlash {
-      0%   { opacity: 0.4; transform: scale(0.85); }
-      60%  { opacity: 1;   transform: scale(1.06); }
-      100% { opacity: 1;   transform: scale(1); }
+      0% {
+        opacity: 0.4;
+        transform: scale(0.85);
+      }
+
+      60% {
+        opacity: 1;
+        transform: scale(1.06);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
 
     .count-flash {
       animation: countFlash 0.35s var(--ease-spring);
     }
 
+    /* ═══════════════════════════════════════════
+       DEPLOYMENT SLOT TRACKER
+    ═══════════════════════════════════════════ */
+    .slot-track {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .slot-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 7.5px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      color: var(--t-low);
+      text-transform: uppercase;
+      white-space: nowrap;
+      margin-right: 4px;
+    }
+
+    .slot-seg {
+      width: 28px;
+      height: 6px;
+      border-radius: 99px;
+      background: rgba(0, 212, 255, 0.07);
+      border: 1px solid rgba(0, 212, 255, 0.14);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s var(--ease-spring);
+      cursor: default;
+    }
+
+    .slot-seg.deploying {
+      background: rgba(0, 212, 255, 0.12);
+      border-color: rgba(0, 212, 255, 0.40);
+      animation: slotPulse 0.8s ease-in-out infinite alternate;
+    }
+
+    .slot-seg.done {
+      background: linear-gradient(90deg, rgba(0, 212, 255, 0.55), rgba(16, 255, 170, 0.45));
+      border-color: rgba(0, 212, 255, 0.60);
+      box-shadow: 0 0 6px rgba(0, 212, 255, 0.40);
+    }
+
+    .slot-seg.done::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 50%, transparent 100%);
+      animation: slotShimmer 1.8s linear infinite;
+    }
+
+    @keyframes slotPulse {
+      from {
+        box-shadow: 0 0 4px rgba(0, 212, 255, 0.3);
+      }
+
+      to {
+        box-shadow: 0 0 12px rgba(0, 212, 255, 0.7);
+      }
+    }
+
+    @keyframes slotShimmer {
+      0% {
+        transform: translateX(-100%);
+      }
+
+      100% {
+        transform: translateX(300%);
+      }
+    }
+
+    .slot-count-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--cyan);
+      white-space: nowrap;
+      margin-left: 4px;
+      letter-spacing: 0.04em;
+    }
+
+    /* Deploy button — slot variant */
+    #deploy-btn.all-deployed {
+      background: linear-gradient(135deg, #0a1f10 0%, #061408 100%);
+      border-color: rgba(16, 255, 170, 0.30);
+      color: var(--green);
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    /* Fleet item slot badge */
+    .fi-slot-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 7px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      background: rgba(0, 212, 255, 0.08);
+      border: 1px solid rgba(0, 212, 255, 0.22);
+      border-radius: 3px;
+      padding: 1px 4px;
+      color: var(--t-low);
+      flex-shrink: 0;
+    }
+
+    /* Slot deploy progress panels in overlay */
+    .overlay-slots {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 4px;
+    }
+
+    .ov-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      width: 52px;
+    }
+
+    .ov-slot-bar {
+      width: 100%;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid rgba(0, 212, 255, 0.14);
+      background: rgba(0, 212, 255, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      transition: all 0.5s var(--ease-spring);
+    }
+
+    .ov-slot-bar.ov-done {
+      background: linear-gradient(135deg, rgba(0, 212, 255, 0.25), rgba(16, 255, 170, 0.15));
+      border-color: rgba(0, 212, 255, 0.55);
+      box-shadow: 0 0 12px rgba(0, 212, 255, 0.3);
+    }
+
+    .ov-slot-bar.ov-active {
+      background: rgba(0, 212, 255, 0.12);
+      border-color: rgba(0, 212, 255, 0.45);
+      animation: slotPulse 0.7s ease-in-out infinite alternate;
+    }
+
+    .ov-slot-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7px;
+      color: var(--t-low);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
     /* Global scrollbar */
     * {
       scrollbar-width: thin;
-      scrollbar-color: rgba(0,245,255,0.12) transparent;
+      scrollbar-color: rgba(0, 245, 255, 0.12) transparent;
     }
   </style>
 </head>
@@ -1621,6 +2628,16 @@
     <div class="bg-orb"></div>
     <div class="bg-orb"></div>
     <div class="bg-orb"></div>
+    <div class="theme-element lemon">🍋</div>
+    <div class="theme-element chilli">🌶️</div>
+    <div class="theme-element vada-pav">🥪</div>
+    <div class="theme-element chilli2">🌶️</div>
+    <div class="theme-element lemon2">🍋</div>
+    <div class="theme-element pav-bhaji">🍛</div>
+    <div class="theme-element rickshaw">🚲</div>
+    <div class="theme-element temple">🛕</div>
+    <div class="theme-element train">🚆</div>
+    <div class="theme-element dabbawala">🥘</div>
   </div>
   <div class="bg-grid"></div>
   <div class="bg-scan"></div>
@@ -1632,7 +2649,7 @@
         <span class="brand-icon-svg">🌐</span>
       </div>
       <div class="brand-text">
-        <div class="brand-title">Neural Nexus</div>
+        <div class="brand-title">MumbaiPravaas</div>
         <div class="brand-sub">Mumbai Fleet Command · MMR</div>
       </div>
     </div>
@@ -1659,7 +2676,65 @@
 
     <div class="spacer"></div>
 
-    <button id="deploy-btn" onclick="deploy()">⚡ DEPLOY 50-FLEET SWARM</button>
+    <!-- Slot Stage Tracker -->
+    <div class="slot-track">
+      <div class="slot-label">Slots</div>
+      <div class="slot-seg" id="slot-seg-1"></div>
+      <div class="slot-seg" id="slot-seg-2"></div>
+      <div class="slot-seg" id="slot-seg-3"></div>
+      <div class="slot-seg" id="slot-seg-4"></div>
+      <div class="slot-seg" id="slot-seg-5"></div>
+      <div class="slot-count-text" id="slot-count-text">0/50</div>
+    </div>
+
+    <div class="v-divider"></div>
+
+    <button id="custom-route-btn" onclick="toggleCustomRoutePanel()"
+      title="Dispatch a custom fleet between two locations">📍 CUSTOM ROUTE</button>
+
+    <button id="reset-btn" onclick="resetAll()" title="Restart the simulation from the beginning">🔄 RESTART</button>
+
+    <button id="deploy-btn" onclick="deploy()">⚡ DEPLOY SLOT 1/5</button>
+  </div>
+
+  <!-- CUSTOM ROUTE PANEL -->
+  <div id="custom-route-panel" class="hidden">
+    <div>
+      <div class="crp-title">📍 Custom Fleet Dispatch</div>
+      <div class="crp-subtitle">Enter any Mumbai origin &amp; destination to dispatch a priority fleet along the optimal
+        road route.</div>
+    </div>
+    <div class="crp-field">
+      <div class="crp-label">🟢 Origin</div>
+      <input id="crp-origin" class="crp-input" type="text" placeholder="e.g. Bandra Station, Mumbai" />
+    </div>
+    <div class="crp-route-arrow">↓</div>
+    <div class="crp-field">
+      <div class="crp-label">🔴 Destination</div>
+      <input id="crp-dest" class="crp-input" type="text" placeholder="e.g. Andheri Tech Park, Mumbai" />
+    </div>
+    <div>
+      <div class="crp-label" style="margin-bottom:5px">Quick Locations</div>
+      <div class="crp-suggestions">
+        <span class="crp-suggest-chip" onclick="fillOrigin('Bandra Kurla Complex, Mumbai')">BKC</span>
+        <span class="crp-suggest-chip" onclick="fillOrigin('Andheri East, Mumbai')">Andheri</span>
+        <span class="crp-suggest-chip" onclick="fillOrigin('Borivali Station, Mumbai')">Borivali</span>
+        <span class="crp-suggest-chip" onclick="fillOrigin('Dadar, Mumbai')">Dadar</span>
+        <span class="crp-suggest-chip" onclick="fillOrigin('Juhu, Mumbai')">Juhu</span>
+        <span class="crp-suggest-chip" onclick="fillOrigin('Bandra, Mumbai')">Bandra</span>
+        <span class="crp-suggest-chip" onclick="fillOrigin('Worli, Mumbai')">Worli</span>
+        <span class="crp-suggest-chip" onclick="fillOrigin('Lower Parel, Mumbai')">Lower Parel</span>
+        <span class="crp-suggest-chip" onclick="fillDest('Churchgate, Mumbai')">→ Churchgate</span>
+        <span class="crp-suggest-chip" onclick="fillDest('Colaba, Mumbai')">→ Colaba</span>
+        <span class="crp-suggest-chip" onclick="fillDest('Thane Station, Mumbai')">→ Thane</span>
+        <span class="crp-suggest-chip" onclick="fillDest('Navi Mumbai')">→ Navi Mumbai</span>
+        <span class="crp-suggest-chip" onclick="fillDest('Mahalaxmi, Mumbai')">→ Mahalaxmi</span>
+        <span class="crp-suggest-chip" onclick="fillDest('Goregaon, Mumbai')">→ Goregaon</span>
+        <span class="crp-suggest-chip" onclick="fillDest('Vashi, Navi Mumbai')">→ Vashi</span>
+      </div>
+    </div>
+    <button id="crp-dispatch-btn" onclick="dispatchCustomFleet()">🚀 DISPATCH FLEET</button>
+    <div id="crp-status" class="crp-status"></div>
   </div>
 
   <!-- MAIN LAYOUT -->
@@ -1684,7 +2759,8 @@
       <div id="pre-deploy-state">
         <div class="pd-icon">🛰️</div>
         <div class="pd-title">No Fleets Active</div>
-        <div class="pd-hint">Click <strong style="color:var(--cyan)">⚡ Deploy</strong><br>to launch the 50-fleet swarm</div>
+        <div class="pd-hint">Click <strong style="color:var(--cyan)">⚡ Deploy</strong><br>to launch the 50-fleet swarm
+        </div>
       </div>
       <div id="fleet-list" style="display:none"></div>
     </div>
@@ -1754,16 +2830,41 @@
       </div>
       <!-- Title -->
       <div class="deploy-title-block">
-        <div class="deploy-main-title">Deploying Swarm</div>
-        <div class="deploy-sub-title">Neural Nexus · Mumbai Command</div>
+        <div class="deploy-main-title" id="overlay-title">Deploying Slot 1/5</div>
+        <div class="deploy-sub-title">MumbaiPravaas · Western Express Highway</div>
       </div>
       <!-- Messages -->
       <div class="deploy-progress-wrap">
-        <div id="loading-msg">Initializing neural swarm…</div>
-        <div class="deploy-prog-track"><div class="deploy-prog-fill"></div></div>
-        <div id="loading-sub">Deploying 50 fleets across Mumbai</div>
+        <div id="loading-msg">Initializing slot 1 deployment…</div>
+        <div class="deploy-prog-track">
+          <div class="deploy-prog-fill" id="overlay-prog-fill"></div>
+        </div>
+        <div id="loading-sub">Calculating optimal road routes &amp; traffic…</div>
       </div>
-      <!-- Fleet pips -->
+      <!-- Slot status blocks -->
+      <div class="overlay-slots" id="overlay-slots">
+        <div class="ov-slot">
+          <div class="ov-slot-bar" id="ov-s1">S1</div>
+          <div class="ov-slot-label">Slot 1</div>
+        </div>
+        <div class="ov-slot">
+          <div class="ov-slot-bar" id="ov-s2">S2</div>
+          <div class="ov-slot-label">Slot 2</div>
+        </div>
+        <div class="ov-slot">
+          <div class="ov-slot-bar" id="ov-s3">S3</div>
+          <div class="ov-slot-label">Slot 3</div>
+        </div>
+        <div class="ov-slot">
+          <div class="ov-slot-bar" id="ov-s4">S4</div>
+          <div class="ov-slot-label">Slot 4</div>
+        </div>
+        <div class="ov-slot">
+          <div class="ov-slot-bar" id="ov-s5">S5</div>
+          <div class="ov-slot-label">Slot 5</div>
+        </div>
+      </div>
+      <!-- Fleet pips (10 per slot, colour-coded) -->
       <div class="deploy-fleet-counter" id="fleet-pips"></div>
     </div>
   </div>
@@ -1777,10 +2878,10 @@
     const FOLLOW_ZOOM = 14.5;
 
     const COLORS = {
-      god:       '#F59E0B',   // amber  — GOD MODE
-      medical:   '#F87171',   // soft red — P1 priority
-      normal:    '#60A5FA',   // steel blue — standard
-      low_fuel:  '#FB923C',   // orange
+      god: '#F59E0B',   // amber  — GOD MODE
+      medical: '#F87171',   // soft red — P1 priority
+      normal: '#60A5FA',   // steel blue — standard
+      low_fuel: '#FB923C',   // orange
       delivered: '#1a2235',   // dim
     };
 
@@ -1797,7 +2898,23 @@
     let _prevStats = { active: 0, delivered: 0, god_mode: 0 };
 
     // ═══════════════════════════════════════════════════════════════════════════
-    //  MAP INITIALISATION — UNCHANGED
+    //  POLLING — moved before map init
+    // ═══════════════════════════════════════════════════════════════════════════
+    function startPolling() {
+      poll();
+      setInterval(poll, POLL_MS);
+    }
+
+    async function poll() {
+      try {
+        const data = await fetch('/api/state').then(r => r.json());
+        updateUI(data);
+        if (mapReady) updateMap(data);
+      } catch (e) { /* network hiccup — silently skip */ }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  MAP INITIALISATION
     // ═══════════════════════════════════════════════════════════════════════════
     const map = new maplibregl.Map({
       container: 'map',
@@ -1814,6 +2931,9 @@
 
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'bottom-right');
     map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
+
+    // Start polling immediately
+    startPolling();
 
     map.on('load', () => {
       // TomTom traffic
@@ -1861,10 +2981,10 @@
       });
 
       // GeoJSON Sources
-      map.addSource('routes-all',      { type: 'geojson', data: EMPTY_FC });
+      map.addSource('routes-all', { type: 'geojson', data: EMPTY_FC });
       map.addSource('routes-selected', { type: 'geojson', data: EMPTY_FC });
       map.addSource('routes-traveled', { type: 'geojson', data: EMPTY_FC });
-      map.addSource('vehicles',        { type: 'geojson', data: EMPTY_FC });
+      map.addSource('vehicles', { type: 'geojson', data: EMPTY_FC });
 
       // Layer 1: All routes (no blur for GPU perf)
       map.addLayer({
@@ -1940,7 +3060,6 @@
       map.on('mouseleave', 'vehicles', () => { map.getCanvas().style.cursor = ''; });
 
       mapReady = true;
-      startPolling();
     });
 
     function colorExpr() {
@@ -1954,39 +3073,67 @@
       ];
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  POLLING — UNCHANGED
-    // ═══════════════════════════════════════════════════════════════════════════
-    function startPolling() {
-      poll();
-      setInterval(poll, POLL_MS);
-    }
 
-    async function poll() {
-      try {
-        const data = await fetch('/api/state').then(r => r.json());
-        updateUI(data);
-        if (mapReady) updateMap(data);
-      } catch (e) { /* network hiccup — silently skip */ }
-    }
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  UPDATE UI — enhanced with count animation
     // ═══════════════════════════════════════════════════════════════════════════
     function updateUI(data) {
-      animateStatValue('s-active',    data.stats.active);
+      animateStatValue('s-active', data.stats.active);
       animateStatValue('s-delivered', data.stats.delivered);
-      animateStatValue('s-god',       data.stats.god_mode);
+      animateStatValue('s-god', data.stats.god_mode);
 
+      const slots = data.slots_deployed || 0;
       const btn = document.getElementById('deploy-btn');
       const overlay = document.getElementById('loading-overlay');
+
+      // Update slot tracker segments
+      for (let s = 1; s <= 5; s++) {
+        const seg = document.getElementById(`slot-seg-${s}`);
+        if (!seg) continue;
+        seg.className = 'slot-seg';
+        if (s <= slots) seg.classList.add('done');
+        else if (s === slots + 1 && data.deploying) seg.classList.add('deploying');
+      }
+      const slotText = document.getElementById('slot-count-text');
+      if (slotText) slotText.textContent = `${slots * 10}/50`;
+
+      // Update overlay slot blocks
+      for (let s = 1; s <= 5; s++) {
+        const ov = document.getElementById(`ov-s${s}`);
+        if (!ov) continue;
+        ov.className = 'ov-slot-bar';
+        if (s <= slots) ov.classList.add('ov-done');
+        else if (s === slots + 1 && data.deploying) ov.classList.add('ov-active');
+      }
+
+      // Deploy button state
+      // Show / hide Reset button
+      const resetBtn = document.getElementById('reset-btn');
+      if (resetBtn) {
+        resetBtn.style.display = ''; // always show
+      }
+
       if (data.deploying) {
         btn.disabled = true;
-        btn.textContent = '⏳ Deploying…';
+        btn.textContent = `⏳ Deploying Slot ${slots + 1}/5…`;
+        btn.classList.remove('all-deployed');
         overlay.classList.remove('hidden');
+        // Update overlay title for current slot
+        const ot = document.getElementById('overlay-title');
+        if (ot) ot.textContent = `Deploying Slot ${slots + 1}/5`;
+      } else if (slots >= 5) {
+        btn.disabled = true;
+        btn.textContent = '✅ ALL 50 FLEETS ACTIVE';
+        btn.classList.add('all-deployed');
+        overlay.classList.add('hidden');
       } else {
         btn.disabled = false;
-        btn.textContent = '⚡ DEPLOY 50-FLEET SWARM';
+        const next = slots + 1;
+        btn.textContent = slots === 0
+          ? '⚡ DEPLOY SLOT 1/5'
+          : `⚡ DEPLOY SLOT ${next}/5 (+10)`;
+        btn.classList.remove('all-deployed');
         overlay.classList.add('hidden');
       }
 
@@ -2067,18 +3214,21 @@
 
       const filtered = q
         ? fleets.filter(f =>
-            f.id.toLowerCase().includes(q) ||
-            f.zone.toLowerCase().includes(q) ||
-            f.status.toLowerCase().includes(q) ||
-            prioLabel(f.prio).toLowerCase().includes(q)
-          )
+          f.id.toLowerCase().includes(q) ||
+          f.zone.toLowerCase().includes(q) ||
+          f.status.toLowerCase().includes(q) ||
+          prioLabel(f.prio).toLowerCase().includes(q)
+        )
         : fleets;
 
+      const SLOT_COLORS = ['', '#00D4FF', '#A855F7', '#10FFAA', '#FFB700', '#F87171'];
       out.innerHTML = filtered.map(f => {
         const col = COLORS[f.color] || COLORS.normal;
         const isSel = f.id === selectedFleetId;
         const isDelivered = f.status === 'Delivered';
         const pLabel = prioLabel(f.prio);
+        const slotN = f.slot || 1;
+        const slotCol = SLOT_COLORS[slotN] || '#00D4FF';
         return `
 <div class="fleet-item${isSel ? ' selected' : ''}" onclick="selectFleet('${f.id}', true)">
   <div class="fi-indicator" style="background:${col};box-shadow:0 0 8px ${col}"></div>
@@ -2086,7 +3236,10 @@
     <div class="fi-dot" style="background:${col};box-shadow:0 0 8px ${col}99"></div>
   </div>
   <div class="fi-body">
-    <div class="fi-id">${f.id} <span style="font-size:8px;font-family:'Inter',sans-serif;background:${col}18;border:1px solid ${col}44;border-radius:4px;padding:1px 5px;color:${col}">${pLabel}</span></div>
+    <div class="fi-id">${f.id}
+      <span style="font-size:8px;font-family:'Inter',sans-serif;background:${col}18;border:1px solid ${col}44;border-radius:4px;padding:1px 5px;color:${col}">${pLabel}</span>
+      <span class="fi-slot-badge" style="border-color:${slotCol}44;color:${slotCol}">S${slotN}</span>
+    </div>
     <div class="fi-zone">${f.zone}</div>
     <div class="fi-prog-wrap">
       <div class="fi-prog" style="width:${f.pct}%;background:linear-gradient(to right,${col}77,${col})"></div>
@@ -2175,7 +3328,7 @@
 
     function refreshSelectedRoute(detail) {
       if (!mapReady) return;
-      const traveled  = detail.route_traveled  || [];
+      const traveled = detail.route_traveled || [];
       const remaining = detail.route_remaining || [];
 
       map.getSource('routes-traveled').setData({
@@ -2195,17 +3348,17 @@
     function renderInspector(d) {
       const col = COLORS[d.color] || COLORS.normal;
       const fuelCol = d.fuel < 20 ? '#FF3366' : d.fuel < 40 ? '#FF9500' : '#00FF88';
-      const pLabel  = prioLabel(d.prio);
+      const pLabel = prioLabel(d.prio);
       const prioCol = d.prio === 1 ? COLORS.medical : d.prio === 2 ? COLORS.normal : '#6a809e';
 
       const statusLabel = {
-        'Active':       '● ACTIVE',
-        'GOD MODE':     '🚨 GOD MODE',
-        'Low Fuel':     '⛽ LOW FUEL',
-        'Delivered':    '✅ DELIVERED',
+        'Active': '● ACTIVE',
+        'GOD MODE': '🚨 GOD MODE',
+        'Low Fuel': '⛽ LOW FUEL',
+        'Delivered': '✅ DELIVERED',
         'Consolidated': '◈ CONSOLIDATED',
-        'Reassigned':   '↺ REASSIGNED',
-        'Swapped':      '⇄ SWAPPED',
+        'Reassigned': '↺ REASSIGNED',
+        'Swapped': '⇄ SWAPPED',
       }[d.status] || d.status;
 
       const ts = d.time_saved_mins || 0;
@@ -2274,7 +3427,7 @@
     <div class="eff-grid">
       <div class="eff-cell">
         <div class="eff-cell-k">Air-line Dist</div>
-        <div class="eff-cell-v" style="color:var(--t-med)">${d.straight_km||0}km</div>
+        <div class="eff-cell-v" style="color:var(--t-med)">${d.straight_km || 0}km</div>
       </div>
       <div class="eff-cell">
         <div class="eff-cell-k">Road Dist</div>
@@ -2282,7 +3435,7 @@
       </div>
       <div class="eff-cell">
         <div class="eff-cell-k">Overhead</div>
-        <div class="eff-cell-v" style="color:#6a8aaa">+${d.road_overhead_pct||0}%</div>
+        <div class="eff-cell-v" style="color:#6a8aaa">+${d.road_overhead_pct || 0}%</div>
       </div>
       <div class="eff-cell">
         <div class="eff-cell-k">Reroutes</div>
@@ -2303,7 +3456,7 @@
     </div>
     <div class="route-connector">
       <div class="route-line"></div>
-      <div class="route-stats-row">${d.dist_km} km road &nbsp;|&nbsp; ${d.straight_km||0} km air</div>
+      <div class="route-stats-row">${d.dist_km} km road &nbsp;|&nbsp; ${d.straight_km || 0} km air</div>
     </div>
     <div class="route-node">
       <div class="route-node-dot" style="background:${col};box-shadow:0 0 8px ${col}66"></div>
@@ -2328,15 +3481,15 @@
       const pct = f.pct || 0;
       const fuelCol = f.fuel < 20 ? '#FF3366' : f.fuel < 40 ? '#FF9500' : '#00FF88';
       const col = COLORS[f.color] || COLORS.normal;
-      safeSet('i-pct',      `${pct}%`);
-      safeSet('i-eta',      `${f.eta}`);
-      safeSet('i-fuel',     `${Math.round(f.fuel)}%`);
+      safeSet('i-pct', `${pct}%`);
+      safeSet('i-eta', `${f.eta}`);
+      safeSet('i-fuel', `${Math.round(f.fuel)}%`);
       safeSet('i-fuel-val', `${Math.round(f.fuel)}`);
       safeStyle('i-prog-bar', `width:${pct}%;background:linear-gradient(to right,${col}66,${col})`);
       safeStyle('i-fuel-bar', `width:${f.fuel}%;background:linear-gradient(to right,${fuelCol}66,${fuelCol})`);
     }
 
-    function safeSet(id, val)     { const el = document.getElementById(id); if (el) el.textContent = val; }
+    function safeSet(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
     function safeStyle(id, style) { const el = document.getElementById(id); if (el) el.style.cssText = style; }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -2380,60 +3533,301 @@
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    //  DEPLOY — clean atmospheric messages, no API references
+    //  DEPLOY — Staged slot deployment (10 fleets per button press)
     // ═══════════════════════════════════════════════════════════════════════════
-    const _DEPLOY_MSGS = [
-      'Initializing neural swarm…',
-      'Plotting 50 routes across Mumbai…',
-      'Calibrating live traffic mesh…',
-      'AI routing in progress…',
-      'Optimizing fleet assignments…',
-      'Resolving final waypoints…',
-      'Deploying fleet command…',
+    const _SLOT_MSGS = [
+      'Loading pre-fetched road routes…',
+      'Initializing fleet units…',
+      'Launching wave formation…',
+      'Activating traffic mesh…',
+      'Fleets on the road!',
     ];
+    const SLOT_PIP_COLORS = ['', '#00D4FF', '#A855F7', '#10FFAA', '#FFB700', '#F87171'];
     let _deployTimer = null;
+    let _deployPollId = null;
+    let _currentDeploySlot = 0;
+
+    function _stopDeployAnim() {
+      clearInterval(_deployTimer);
+      clearInterval(_deployPollId);
+      _deployTimer = null;
+      _deployPollId = null;
+    }
 
     async function deploy() {
-      document.getElementById('deploy-btn').disabled = true;
-      document.getElementById('loading-overlay').classList.remove('hidden');
+      const btn = document.getElementById('deploy-btn');
+      if (btn.disabled) return;
+      btn.disabled = true;
 
-      // Build 50 pip dots
+      // Snapshot current state
+      let stateSnap;
+      try {
+        stateSnap = await fetch('/api/state').then(r => r.json());
+      } catch (e) { btn.disabled = false; return; }
+
+      const slots = stateSnap.slots_deployed || 0;
+      if (slots >= 5) { btn.disabled = true; return; }
+      const deployingSlot = slots + 1;
+      _currentDeploySlot = deployingSlot;
+      const expectedTotal = deployingSlot * 10;   // fleets count after this slot
+
+      // ── Show overlay ────────────────────────────────────────────────────────
+      const overlay = document.getElementById('loading-overlay');
+      overlay.classList.remove('hidden');
+      const ot = document.getElementById('overlay-title');
+      if (ot) ot.textContent = `Deploying Slot ${deployingSlot}/5`;
+      const sub = document.getElementById('loading-sub');
+      if (sub) sub.textContent = `Slot ${deployingSlot}/5 · Serving pre-fetched road routes…`;
+
+      // ── Re-render progress bar (reset CSS animation) ─────────────────────
+      const fill = document.getElementById('overlay-prog-fill');
+      if (fill) {
+        fill.style.animation = 'none';
+        void fill.offsetWidth;
+        fill.style.animation = 'progSweep 3s ease-in-out forwards, progShimmer 1.5s linear infinite';
+      }
+
+      // ── Build 10 pip dots ────────────────────────────────────────────────
       const pipsEl = document.getElementById('fleet-pips');
-      pipsEl.innerHTML = Array.from({length: 50}, (_, i) =>
-        `<div class="fleet-pip" id="pip-${i}"></div>`
+      const slotColor = SLOT_PIP_COLORS[deployingSlot] || '#00D4FF';
+      pipsEl.innerHTML = Array.from({ length: 10 }, (_, i) =>
+        `<div class="fleet-pip" id="pip-${i}" style="border-color:${slotColor}44"></div>`
       ).join('');
 
-      // Animate pips lighting up sequentially over ~10s
+      // Light up pips over 3 s (one every 300 ms)
       let pipIdx = 0;
       const pipTimer = setInterval(() => {
-        if (pipIdx < 50) {
-          document.getElementById(`pip-${pipIdx}`)?.classList.add('active');
+        if (pipIdx < 10) {
+          const pip = document.getElementById(`pip-${pipIdx}`);
+          if (pip) {
+            pip.style.background = slotColor;
+            pip.style.boxShadow = `0 0 8px ${slotColor}, 0 0 16px ${slotColor}66`;
+            pip.style.borderColor = slotColor;
+            pip.classList.add('active');
+          }
           pipIdx++;
         } else {
           clearInterval(pipTimer);
         }
-      }, 200);
+      }, 300);
 
+      // ── Cycle status messages every 750 ms ───────────────────────────────
       let mi = 0;
-      document.getElementById('loading-msg').textContent = _DEPLOY_MSGS[0];
-      clearInterval(_deployTimer);
+      const msgEl = document.getElementById('loading-msg');
+      if (msgEl) msgEl.textContent = _SLOT_MSGS[0];
+      _stopDeployAnim();
       _deployTimer = setInterval(() => {
-        const ov = document.getElementById('loading-overlay');
-        if (ov.classList.contains('hidden')) { clearInterval(_deployTimer); clearInterval(pipTimer); return; }
-        mi = (mi + 1) % _DEPLOY_MSGS.length;
-        const msgEl = document.getElementById('loading-msg');
-        msgEl.style.animation = 'none'; void msgEl.offsetWidth;
-        msgEl.style.animation = 'msgFade 0.4s ease-out';
-        msgEl.textContent = _DEPLOY_MSGS[mi];
-      }, 2000);
+        if (overlay.classList.contains('hidden')) { _stopDeployAnim(); return; }
+        mi = (mi + 1) % _SLOT_MSGS.length;
+        if (msgEl) {
+          msgEl.style.animation = 'none'; void msgEl.offsetWidth;
+          msgEl.style.animation = 'msgFade 0.4s ease-out';
+          msgEl.textContent = _SLOT_MSGS[mi];
+        }
+      }, 750);
+
+      // ── Fire deploy request (returns almost instantly with cache) ─────────
       try {
-        await fetch('/api/deploy', { method: 'POST' });
+        const res = await fetch('/api/deploy', { method: 'POST' });
+        const json = await res.json();
+        if (!json.ok) {
+          _stopDeployAnim();
+          overlay.classList.add('hidden');
+          btn.disabled = false;
+          return;
+        }
       } catch (e) {
-        clearInterval(_deployTimer);
-        document.getElementById('deploy-btn').disabled = false;
-        document.getElementById('loading-overlay').classList.add('hidden');
+        _stopDeployAnim();
+        overlay.classList.add('hidden');
+        btn.disabled = false;
+        return;
+      }
+
+      // ── Fast-poll every 200 ms until fleets appear OR 3.5 s timeout ──────
+      const deadline = Date.now() + 3500;
+      _deployPollId = setInterval(async () => {
+        try {
+          const d = await fetch('/api/state').then(r => r.json());
+          const done = !d.deploying || d.fleets.length >= expectedTotal || Date.now() > deadline;
+          if (done) {
+            _stopDeployAnim();
+            clearInterval(pipTimer);
+            // Light up all remaining pips instantly
+            for (let i = pipIdx; i < 10; i++) {
+              const pip = document.getElementById(`pip-${i}`);
+              if (pip) {
+                pip.style.background = slotColor;
+                pip.style.boxShadow = `0 0 8px ${slotColor}, 0 0 16px ${slotColor}66`;
+                pip.style.borderColor = slotColor;
+                pip.classList.add('active');
+              }
+            }
+            // Brief pause so user sees the completed pips, then hide overlay
+            setTimeout(() => {
+              overlay.classList.add('hidden');
+              updateUI(d);
+              if (mapReady) updateMap(d);
+            }, 400);
+          }
+        } catch (e) {
+          if (Date.now() > deadline) {
+            _stopDeployAnim();
+            clearInterval(pipTimer);
+            overlay.classList.add('hidden');
+          }
+        }
+      }, 200);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  RESET ALL — wipe every fleet and return to pre-deploy state
+    // ═══════════════════════════════════════════════════════════════════════════
+    async function resetAll() {
+      const resetBtn = document.getElementById('reset-btn');
+      if (!confirm('⚠️ Reset all 50 fleets?\n\nThis will delete every active deployment and let you start fresh.')) return;
+
+      if (resetBtn) { resetBtn.disabled = true; resetBtn.textContent = '⏳ Resetting…'; }
+
+      // Call backend reset
+      try { await fetch('/api/reset', { method: 'POST' }); } catch (e) { }
+
+      // ── Wipe frontend state ──────────────────────────────────────────────────
+      allFleets = [];
+      selectedFleetId = null;
+      isFollowing = false;
+      _fleetsEverDeployed = false;
+      lastFrame = -1;
+      _prevStats = { active: 0, delivered: 0, god_mode: 0 };
+      _seenLogs.clear();
+
+      // ── Reset sidebar ────────────────────────────────────────────────────────
+      document.getElementById('pre-deploy-state').style.display = '';
+      const fl = document.getElementById('fleet-list');
+      fl.innerHTML = ''; fl.style.display = 'none';
+      document.getElementById('sb-count').textContent = '0 units';
+      document.getElementById('fleet-search').value = '';
+
+      // ── Reset stats ──────────────────────────────────────────────────────────
+      ['s-active', 's-delivered', 's-god'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.textContent = '0';
+      });
+
+      // ── Reset slot tracker ───────────────────────────────────────────────────
+      document.getElementById('slot-count-text').textContent = '0/50';
+      for (let s = 1; s <= 5; s++) {
+        const seg = document.getElementById(`slot-seg-${s}`);
+        if (seg) seg.className = 'slot-seg';
+        const ov = document.getElementById(`ov-s${s}`);
+        if (ov) ov.className = 'ov-slot-bar';
+      }
+
+      // ── Reset deploy button ──────────────────────────────────────────────────
+      const deployBtn = document.getElementById('deploy-btn');
+      deployBtn.disabled = false;
+      deployBtn.textContent = '⚡ DEPLOY SLOT 1/5';
+      deployBtn.classList.remove('all-deployed');
+
+      // ── Hide reset button ────────────────────────────────────────────────────
+      if (resetBtn) { resetBtn.style.display = 'none'; resetBtn.disabled = false; resetBtn.textContent = '🔄 RESET ALL'; }
+
+      // ── Hide overlay & inspector ─────────────────────────────────────────────
+      document.getElementById('loading-overlay').classList.add('hidden');
+      closeInspector();
+
+      // ── Clear map layers ─────────────────────────────────────────────────────
+      if (mapReady) {
+        map.getSource('vehicles').setData(EMPTY_FC);
+        map.getSource('routes-all').setData(EMPTY_FC);
+        map.getSource('routes-selected').setData(EMPTY_FC);
+        map.getSource('routes-traveled').setData(EMPTY_FC);
+      }
+
+      _showToast('🔄 All fleets reset — ready for fresh deployment');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  CUSTOM ROUTE PANEL
+    // ═══════════════════════════════════════════════════════════════════════════
+    let _crpOpen = false;
+
+    function toggleCustomRoutePanel() {
+      _crpOpen = !_crpOpen;
+      const panel = document.getElementById('custom-route-panel');
+      const btn = document.getElementById('custom-route-btn');
+      panel.classList.toggle('hidden', !_crpOpen);
+      btn.classList.toggle('active', _crpOpen);
+      if (_crpOpen) {
+        // Position below top bar, to the right (avoid inspector overlap)
+        setTimeout(() => document.getElementById('crp-origin').focus(), 80);
       }
     }
+
+    function fillOrigin(text) {
+      document.getElementById('crp-origin').value = text;
+    }
+    function fillDest(text) {
+      document.getElementById('crp-dest').value = text;
+    }
+
+    async function dispatchCustomFleet() {
+      const origin = document.getElementById('crp-origin').value.trim();
+      const dest = document.getElementById('crp-dest').value.trim();
+      const statusEl = document.getElementById('crp-status');
+      const btn = document.getElementById('crp-dispatch-btn');
+
+      if (!origin || !dest) {
+        statusEl.textContent = '⚠ Please fill both origin and destination.';
+        statusEl.className = 'crp-status err';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = '⏳ Geocoding & routing…';
+      statusEl.textContent = 'Geocoding locations…';
+      statusEl.className = 'crp-status';
+
+      try {
+        const res = await fetch('/api/custom-route', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ origin, destination: dest }),
+        });
+        const json = await res.json();
+
+        if (json.ok) {
+          statusEl.textContent = `✅ ${json.fleet_id} dispatched — ${json.dist_km}km · ETA ${json.eta}min`;
+          statusEl.className = 'crp-status ok';
+          // Auto-select the new fleet after a moment
+          setTimeout(() => selectFleet(json.fleet_id, true), 800);
+          // Clear inputs
+          document.getElementById('crp-origin').value = '';
+          document.getElementById('crp-dest').value = '';
+        } else {
+          statusEl.textContent = `❌ ${json.msg}`;
+          statusEl.className = 'crp-status err';
+        }
+      } catch (e) {
+        statusEl.textContent = '❌ Network error — is the server running?';
+        statusEl.className = 'crp-status err';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🚀 DISPATCH FLEET';
+      }
+    }
+
+    // Close custom panel when clicking elsewhere on map
+    document.addEventListener('click', (e) => {
+      if (!_crpOpen) return;
+      const panel = document.getElementById('custom-route-panel');
+      const btn = document.getElementById('custom-route-btn');
+      if (panel && !panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+        _crpOpen = false;
+        panel.classList.add('hidden');
+        btn.classList.remove('active');
+      }
+    });
+
   </script>
 </body>
+
 </html>
